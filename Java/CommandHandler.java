@@ -5,7 +5,7 @@ import java.util.HashSet;
 public class CommandHandler {
 
     public CommandHandler() {
-
+        
     }
 
     public void handleRequest(String command, String[] parameters) {
@@ -37,32 +37,7 @@ public class CommandHandler {
         }
     }
 
-    public String createResponse(String responseType, String[] parameters) {
-        switch (responseType) {
-            case ("BORD"):
-                createConnection(responseType);
-                break;
-            case ("GAMS"):
-                // print Goodbye message from client
-                quit(responseType);
-                break;
-            case ("GDBY"):
-                break;
-            case ("JOND"):
-                break;
-            case ("SESS"):
-                break;
-            case ("TERM"):
-                break;
-            case ("YRMV"):
-                break;
-            default:
-                break;
-        }
-        return "";
-    }
-
-    /**
+        /**
      * CREA
      * Client-sent message
      * 
@@ -90,18 +65,6 @@ public class CommandHandler {
     }
 
     /**
-     * LIST
-     * Client-sent message
-     * 
-     * @return HashSet<String>
-     */
-    private HashSet<String> listAvailableGames() {
-        // TODO: Need To Create Globa HashSet of all The Games
-        // return avaliableGames;
-        return null;
-    }
-
-    /**
      * JOIN
      * Client-sent message
      * Connects to an on-going, already-created game specified by the gameIdentifier
@@ -120,6 +83,30 @@ public class CommandHandler {
         return "";
     }
 
+
+    /**
+     * LIST
+     * Client-sent message
+     * 
+     * @return HashSet<String>
+     */
+    private HashSet<String> listAvailableGames() {
+        // TODO: Need To Create Globa HashSet of all The Games
+        // return avaliableGames;
+        return null;
+    }
+
+     /**
+     * MOVE
+     * Storing Cleint Move
+     * 
+     * @param moveRequest
+     */
+
+    private void move(String movRequest) {
+
+    }
+
     /**
      * QUIT (GDBY)
      * Client-sent message
@@ -131,14 +118,46 @@ public class CommandHandler {
     }
 
     /**
-     * MOVE
-     * Storing Cleint Move
+     * STAT: 
+     * Client-sent message
      * 
-     * @param moveRequest
+     * @param gameIdentifier -
      */
 
-    private void move(String movRequest) {
+    // private String[] stats(String gameIdentifier){
 
+        
+    // }
+
+    
+
+    
+    public String createResponse(String responseType, String[] parameters) {
+        switch (responseType) {
+            case ("BORD"):
+                createConnection(responseType);
+                break;
+            case ("GAMS"):
+                // print Goodbye message from client
+                quit(responseType);
+                break;
+            case ("GDBY"):
+                break;
+            case ("JOND"):
+                break;
+            case ("SESS"):
+                break;
+            case ("TERM"):
+                break;
+            case ("YRMV"):
+                break;
+            default:
+                break;
+        }
+        return "";
     }
+
+
+
 
 }

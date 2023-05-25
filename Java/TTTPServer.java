@@ -4,10 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 public class TTTPServer {
     private HashSet<String> avaliableGames = new HashSet<String>();
@@ -48,24 +44,21 @@ public class TTTPServer {
      * 
      */
     private static void handleTCPRequest() {
+        Socket TCPSocket = null;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started and listening on port " + port);
-            Socket TCPSocket;
+            System.out.println("TCP server started and listening on port " + port);
             while ((TCPSocket = serverSocket.accept()) != null) {
                 System.out.println("New TCP client connected: " + TCPSocket.getInetAddress().getHostAddress());
 
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(TCPSocket.getInputStream()));
                     PrintWriter out = new PrintWriter(TCPSocket.getOutputStream(), true)) {
             
-                        String request;
-                        while ((request = in.readLine()) != null) { 
-                            System.out.println("Received: " + request);
-                            callCommand(request);
-                            out.println("Sending client response...");
-                        }
+                    String request = in.readLine(); 
+                    System.out.println("Received: " + request);
+                    callCommand(request);
+                    out.println("Sending client response...");
+
                         
-                        in.close();
-                        out.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -74,23 +67,24 @@ public class TTTPServer {
             e.printStackTrace();
         }  
     }
+
     
+
     private static void handleUDPRequest() {
-        try {
-            while(true) {
+        try (DatagramSocket UDPSocket = new DatagramSocket(port)) {
+            System.out.println("UDP server started and listening on port " + port);
+
+            while (true) {
                 byte[] buffer = new byte[256];
                 DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
-                DatagramSocket UDPSocket = new DatagramSocket(port);
-                
                 UDPSocket.receive(requestPacket);
+
                 System.out.println("Datagram Received.");
 
                 String request = new String(requestPacket.getData(), 0, requestPacket.getLength());
                 System.out.println("Received Data: " + request);
-                
-                callCommand(request);
 
-                UDPSocket.close();
+                callCommand(request);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -98,9 +92,10 @@ public class TTTPServer {
     }
 
     //Example Request: 
-            //HELO 1 CID1
-            //SESS SID2 CID2
-            //BORD GID1 CID1 CID2 CID2 
+            // HELO 1 CID1
+            // SESS SID2 CID2
+            // BORD GID1 CID1 CID2 CID2
+            //
             // |*|*|*|
             // |*|X|*|
             // |*|*|*|
