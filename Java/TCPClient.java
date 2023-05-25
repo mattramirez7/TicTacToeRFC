@@ -11,22 +11,26 @@ public class TCPClient {
         String serverAddress = "localhost"; // Server address
         int serverPort = 3116; // Server port
 
-        try (Socket socket = new Socket(serverAddress, serverPort)) {
+        while (true) {
+            try (Socket socket = new Socket(serverAddress, serverPort)) {
             
-            System.out.println("Connected to server: " + serverAddress + ":" + serverPort);
+                System.out.println("Connected to server: " + serverAddress + ":" + serverPort);
+    
+                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+    
+                // Send a message to the server
+                writer.println("HELO 1 CID1");
+    
+    
+                String response = reader.readLine();
+                System.out.println("Server response: " + response);
+    
+            } catch (IOException e) {
+                e.printStackTrace();
+            } 
+        }
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-
-            // Send a message to the server
-            writer.println("HELO 1 CID1");
-
-            // Receive the server's response
-            // String response = reader.readLine();
-            // System.out.println("Server response: " + response);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } 
+        
     }
 }

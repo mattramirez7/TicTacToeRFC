@@ -1,26 +1,27 @@
 package Java;
 
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandHandler {
+
+    private AtomicInteger sessionIdCounter = new AtomicInteger(1);
+    private AtomicInteger gameIdCounter = new AtomicInteger(1);
 
     public CommandHandler() {
         
     }
 
-    public void handleRequest(String command, String[] parameters) {
+    public String handleRequest(String command, String[] parameters) {
         switch (command) {
             case ("CREA"):
-                System.out.println("Create called");
-                createConnection(command);
-                break;
+                return createGame(parameters);
             case ("GDBY"):
                 // print Goodbye message from client
                 quit(command);
                 break;
             case ("HELO"):
-                System.out.println("Helo called");
-                break;
+                return createSession(parameters);
             case ("JOIN"):
                 break;
             case ("LIST"):
@@ -35,9 +36,10 @@ public class CommandHandler {
             default:
                 break;
         }
+        return "";
     }
 
-        /**
+    /**
      * CREA
      * Client-sent message
      * 
@@ -45,13 +47,16 @@ public class CommandHandler {
      * @return void - instantiates new game session for the client given the
      *         specified individual identifier
      */
-    private void createConnection(String sessionMsg) {
-        // Listen until there are at-least two clients in that sess
-        // if the game does not exist create a new session
+    private String createGame(String[] parameters) {
+        String clientId = parameters[0];
+        String gameId = generateGameId();
+        System.out.println("Generated Game ID: " + gameId);
+        return "JOND " + clientId + " " + gameId;
+    }
 
-        // add it to the hashset
-        // else have them connect to existing session
-        // respond with a joined an existing game message
+    private String generateGameId() {
+        int gameId = gameIdCounter.getAndIncrement();
+        return "SID" + gameId;
     }
 
     /**
@@ -60,8 +65,20 @@ public class CommandHandler {
      * 
      * @return session identifier
      */
-    private void createSession() {
-        // TODO
+    private String createSession(String[] parameters) {
+        String version = parameters[0];
+        String clientId = parameters[1];
+
+        String sessionId = generateSessionId();
+        System.out.println("Generated Session ID: " + sessionId);
+
+        return "SESS " + sessionId + " " + clientId;
+
+    }
+
+    private String generateSessionId() {
+        int sessionId = sessionIdCounter.getAndIncrement();
+        return "SID" + sessionId;
     }
 
     /**
@@ -75,6 +92,7 @@ public class CommandHandler {
      *         specified individual identifier
      */
     private void joinGame(String gameIdentifier) {
+
 
     }
 
@@ -124,40 +142,32 @@ public class CommandHandler {
      * @param gameIdentifier -
      */
 
-    // private String[] stats(String gameIdentifier){
-
-        
+    // private String[] stats(String gameIdentifier){        
+    //     return [] ;
     // }
 
     
 
     
-    public String createResponse(String responseType, String[] parameters) {
-        switch (responseType) {
-            case ("BORD"):
-                createConnection(responseType);
-                break;
-            case ("GAMS"):
-                // print Goodbye message from client
-                quit(responseType);
-                break;
-            case ("GDBY"):
-                break;
-            case ("JOND"):
-                break;
-            case ("SESS"):
-                break;
-            case ("TERM"):
-                break;
-            case ("YRMV"):
-                break;
-            default:
-                break;
-        }
-        return "";
-    }
-
-
-
-
+    // public String createResponse(String responseType, String[] parameters) {
+    //     switch (responseType) {
+    //         case ("BORD"):
+    //             break;
+    //         case ("GAMS"):
+    //             break;
+    //         case ("GDBY"):
+    //             break;
+    //         case ("JOND"):
+    //             break;
+    //         case ("SESS"):
+    //             break;
+    //         case ("TERM"):
+    //             break;
+    //         case ("YRMV"):
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    //     return "";
+    // }
 }
