@@ -24,13 +24,15 @@ public class Client {
 
             // Send greeting message
             String protocolVersion = "1";
-            String clientIdentifier = "CLIENT123";
+            String clientIdentifier = "CLIENT123"; // change this based on client name
             out.println("HELO " + protocolVersion + " " + clientIdentifier);
             System.out.println("Sent greeting message to the server.");
 
             // Receive acknowledgment
             String acknowledgment = in.readLine();
             System.out.println("Received acknowledgment from the server: " + acknowledgment);
+
+            
 
             // Close the TCP connection
             socket.close();
@@ -45,4 +47,32 @@ public class Client {
             System.out.println("Invalid service. Please choose TCP or UDP.");
         }
     }
+
+
+
+    {/*
+
+    -Client is prompted for TCP or UDP
+    -Ask for Self identifying name
+    -Establish Connected
+    -Start new game or Join existing 
+        -if new game send CREA command
+        -if Join send Join command
+        -or LIST command
+
+    -JOND print out youve joined a game and game Identifier string (store this)+ print out
+    -
+    -BORD: print out board to command line do nothing else 
+    -YRMV
+        -first yrmv command check for which symbol 
+        -others, check if symbol null 
+            -otherwise check if your move
+
+    -prompt print out where to move 
+    -send MOVE command
+    -at any point client can quit send QUIT GID to server 
+    -loop back to do u want to start or join a game
+
+    - create class to check for command 
+     */}
 }
