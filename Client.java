@@ -45,9 +45,9 @@ public class Client {
             while(!gameTermined){
                 String[] response=in.readLine().split(" ");
                 String message= handleResponse(response);
-                if(!gameTerminated){
-                    out.println(message);
-                }
+                if(!gameTerminated && !message.equals("")){
+                    out.println(message + "\r\n");
+                } 
             }
 
             // System.out.print("Would u like to create a game or join an existing game?");
@@ -71,7 +71,7 @@ public class Client {
         public static String handleResponse(String[] response){
             String action=response[0];
             String request="";
-            if(action.equals("SESS")){ //emily
+            if(action.equals("SESS")){ //emily make sure to prompt for creating, joining or looking at a list of open session ids
                 request=getSession(response);
             } else if (action.equals("BORD")){ // audrey
                 request=getJOHD(response);
