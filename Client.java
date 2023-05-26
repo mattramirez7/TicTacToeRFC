@@ -16,6 +16,7 @@ public class Client {
 
         System.out.print("Enter your Client Identifier: ");
         String clientIdentifier = scanner.nextLine();
+        
         ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|");
 
         System.out.print("Enter Version: ");
