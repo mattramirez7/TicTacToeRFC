@@ -4,11 +4,16 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import Java.ClientSession;
+import Java.ClientSessionThread;
 
 public class TTTPServer {
     private HashSet<String> availableGames = new HashSet<String>();
     private HashMap<String, String> games;
+    private ServerSocket tcpServerSocket;
+    private DatagramSocket udpServerSocket;
     private static HashMap<String, String> clients;
+    private static HashMap<String, ClientSessionThread> clientThreads = new HashMap<>();
     private static final HashMap<String, String> COMMANDS = new HashMap<String, String>();
     private static CommandHandler ch = new CommandHandler();
 
@@ -30,20 +35,56 @@ public class TTTPServer {
         
     }
 
-    private static int port = 3116;
+    private static int PORT = 3116;
     static ExecutorService exec = null;
     public static void main(String[] args) {
 
-        exec = Executors.newFixedThreadPool(10);
-        exec.submit(() -> handleTCPRequest());
-        exec.submit(() -> handleUDPRequest());
+        TTTPServer tttpserver = new TTTPServer();
+        tttpserver.start();
+
+        // exec = Executors.newFixedThreadPool(10);
+        // exec.submit(() -> handleTCPRequest());
+        // exec.submit(() -> handleUDPRequest());
         
+    }
+
+    public void start() {        
+        try {
+            tcpServerSocket = new ServerSocket(PORT);
+            udpServerSocket = new DatagramSocket(PORT);
+            System.out.println("Server started on port 3116.");
+            
+            // Constantly listen to new client connections:
+            while (true) {
+                // try catch - try both tcp and udp, pick non-null one, send to Client Session, create Client Session Thread thereafter...
+                Socket tcpClientSocket = tcpServerSocket.accept();
+                 byte[] buffer = new byte[256];
+                DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
+                DatagramSocket udpClientSocket = udpServerSocket.receive(requestPacket);
+
+                String sessionId = ""; // -- // callCommand(); -- need to know if should create session automatically or only after "HELO / CREA"
+                // MUST CHECK IF CONNECTION IS UDP OR TCP BEFORE CREATING CLIENT THREAD. Don't pass in both.
+                ClientSession session = new ClientSession(sessionId, tcpClientSocket, requestPacket);
+                if (clientThreads.size() >= 10) {
+                    clientSocket.getOutputStream().write(("10 of 10 sessions already in use. Please wait for another user to disconnect.").getBytes());
+                } else if (clientThreads.containsKey(sessionId)) {
+                    clientSocket.getOutputStream().write(("Client session already in use.").getBytes());
+                } else {
+                    ClientSessionThread clientThread = new ClientSessionThread(session);
+                    clientThreads.put(sessionId, clientThread);
+                    clientThread.start();
+                }
+                
+            }
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
 
     private static void handleTCPRequest() {
         Socket TCPSocket = null;
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("TCP server started and listening on port " + port);
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("TCP server started and listening on port " + PORT);
             while ((TCPSocket = serverSocket.accept()) != null) {
                 System.out.println("New TCP client connected: " + TCPSocket.getInetAddress().getHostAddress());
 
@@ -65,11 +106,9 @@ public class TTTPServer {
         }  
     }
 
-    
-
     private static void handleUDPRequest() {
-        try (DatagramSocket UDPSocket = new DatagramSocket(port)) {
-            System.out.println("UDP server started and listening on port " + port);
+        try (DatagramSocket UDPSocket = new DatagramSocket(PORT)) {
+            System.out.println("UDP server started and listening on PORT " + PORT);
 
             while (true) {
                 byte[] buffer = new byte[256];

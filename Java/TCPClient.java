@@ -22,7 +22,7 @@ public class TCPClient {
                 // Send a message to the server
                 writer.println("HELO 1 CID1");
     
-    
+                
                 String response = reader.readLine();
                 System.out.println("Server response: " + response);
     
