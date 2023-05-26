@@ -14,26 +14,9 @@ public class TTTPServer {
     private DatagramSocket udpServerSocket;
     private static HashMap<String, String> clients;
     private static HashMap<String, ClientSessionThread> clientThreads = new HashMap<>();
-    private static final HashMap<String, String> COMMANDS = new HashMap<String, String>();
     private static CommandHandler ch = new CommandHandler();
-
-    static {
-        COMMANDS.put("CREA", "request");
-        COMMANDS.put("GDBY", "request");
-        COMMANDS.put("HELO", "request");
-        COMMANDS.put("JOIN", "request");
-        COMMANDS.put("LIST", "request");
-        COMMANDS.put("MOVE", "request");
-        COMMANDS.put("QUIT", "request");
-        COMMANDS.put("STAT", "request");
-        COMMANDS.put("BORD", "response");
-        COMMANDS.put("GAMS", "response");
-        COMMANDS.put("JOND", "response");
-        COMMANDS.put("SESS", "response");
-        COMMANDS.put("TERM", "response");
-        COMMANDS.put("YRMV", "response");
-        
-    }
+    private static final int SOCKET_TIMEOUT = 3000; // 3 seconds
+    
 
     private static int PORT = 3116;
     static ExecutorService exec = null;
@@ -52,28 +35,82 @@ public class TTTPServer {
         try {
             tcpServerSocket = new ServerSocket(PORT);
             udpServerSocket = new DatagramSocket(PORT);
+            ClientSession session = null;
+            Socket tcpClientSocket = null;
             System.out.println("Server started on port 3116.");
             
             // Constantly listen to new client connections:
             while (true) {
-                // try catch - try both tcp and udp, pick non-null one, send to Client Session, create Client Session Thread thereafter...
-                Socket tcpClientSocket = tcpServerSocket.accept();
-                 byte[] buffer = new byte[256];
-                DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
-                DatagramSocket udpClientSocket = udpServerSocket.receive(requestPacket);
+                // Listen for any new connection
+                // Check for TCP or UDP, if neither, continue looping and do nothing
+                // If TCP: go into TCP
+                // start thread
+                // if UDP: go into UDP
+                // start trhead
+                String sessionId = ""; // -- // callCommand();
 
-                String sessionId = ""; // -- // callCommand(); -- need to know if should create session automatically or only after "HELO / CREA"
-                // MUST CHECK IF CONNECTION IS UDP OR TCP BEFORE CREATING CLIENT THREAD. Don't pass in both.
-                ClientSession session = new ClientSession(sessionId, tcpClientSocket, requestPacket);
-                if (clientThreads.size() >= 10) {
-                    clientSocket.getOutputStream().write(("10 of 10 sessions already in use. Please wait for another user to disconnect.").getBytes());
-                } else if (clientThreads.containsKey(sessionId)) {
-                    clientSocket.getOutputStream().write(("Client session already in use.").getBytes());
-                } else {
-                    ClientSessionThread clientThread = new ClientSessionThread(session);
-                    clientThreads.put(sessionId, clientThread);
-                    clientThread.start();
+                // try catch - try both tcp and udp, pick non-null one, send to Client Session, create Client Session Thread thereafter...
+                try {
+                    tcpServerSocket.setSoTimeout(SOCKET_TIMEOUT);
+                    tcpClientSocket = tcpServerSocket.accept();
+                    System.out.println("New TCP client connected: " + tcpClientSocket.getInetAddress().getHostAddress());
+                    if (clientThreads.size() >= 10) {
+                        String message = "10 of 10 sessions already in use. Please wait for another user to disconnect.";
+                        tcpClientSocket.getOutputStream().write(message.getBytes());
+                        DatagramPacket packet = new DatagramPacket(message.getBytes(), message.getBytes().length);
+                        udpServerSocket.send(packet);
+                    } else if (clientThreads.containsKey(sessionId)) {
+                        tcpClientSocket.getOutputStream().write(("Client session already in use.").getBytes());
+                    } else {
+                        session = new ClientSession(sessionId, tcpClientSocket); // TCP session
+                        ClientSessionThread clientThread = new ClientSessionThread(session);
+                        clientThreads.put(sessionId, clientThread);
+                        clientThread.start();
+                    }
+                } catch (SocketTimeoutException e) {
+                    // Timeout reached, continue loop without accepting TCP connection
                 }
+
+                // at Java.ClientSessionThread.run(ClientSessionThread.java:33)
+                // New TCP client connected: 127.0.0.1
+                // java.net.SocketException: Socket is closed
+                //         at java.base/java.net.Socket.getInputStream(Socket.java:986)
+                //         at Java.ClientSessionThread.handleTCPRequest(ClientSessionThread.java:54)
+
+                byte[] buffer = new byte[256];
+                DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
+                try {
+                    udpServerSocket.setSoTimeout(SOCKET_TIMEOUT);
+                    udpServerSocket.receive(requestPacket);
+                    System.out.println("Datagram Received.");
+                    if (clientThreads.size() >= 10) {
+                        String message = "10 of 10 sessions already in use. Please wait for another user to disconnect.";
+                        tcpClientSocket.getOutputStream().write(message.getBytes());
+                        DatagramPacket packet = new DatagramPacket(message.getBytes(), message.getBytes().length);
+                        udpServerSocket.send(packet);
+                    } else if (clientThreads.containsKey(sessionId)) {
+                        tcpClientSocket.getOutputStream().write(("Client session already in use.").getBytes());
+                    } else {
+                        session = new ClientSession(sessionId, udpServerSocket, requestPacket); // UDP session
+                        ClientSessionThread clientThread = new ClientSessionThread(session);
+                        clientThreads.put(sessionId, clientThread);
+                        clientThread.start();
+                    }
+                } catch (SocketTimeoutException e) {
+                    // Timeout reached, continue loop without receiving UDP packet
+                }
+
+                // // if (tcpClientSocket == null &)
+                // if (tcpClientSocket != null) {
+                //     session = new ClientSession(sessionId, tcpClientSocket); // TCP session
+                // } else if (requestPacket.getLength() > 0) {
+                //     session = new ClientSession(sessionId, udpServerSocket, requestPacket);
+                //     // UDP session
+                // } else {
+                //     break;
+                  
+                // }
+
                 
             }
         } catch (IOException ioe) {
@@ -81,57 +118,57 @@ public class TTTPServer {
         }
     }
 
-    private static void handleTCPRequest() {
-        Socket TCPSocket = null;
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("TCP server started and listening on port " + PORT);
-            while ((TCPSocket = serverSocket.accept()) != null) {
-                System.out.println("New TCP client connected: " + TCPSocket.getInetAddress().getHostAddress());
+    // private static void handleTCPRequest() {
+    //     Socket TCPSocket = null;
+    //     try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+    //         System.out.println("TCP server started and listening on port " + PORT);
+    //         while ((TCPSocket = serverSocket.accept()) != null) {
+    //             System.out.println("New TCP client connected: " + TCPSocket.getInetAddress().getHostAddress());
 
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(TCPSocket.getInputStream()));
-                    PrintWriter out = new PrintWriter(TCPSocket.getOutputStream(), true)) {
+    //             try (BufferedReader in = new BufferedReader(new InputStreamReader(TCPSocket.getInputStream()));
+    //                 PrintWriter out = new PrintWriter(TCPSocket.getOutputStream(), true)) {
             
-                    String request = in.readLine(); 
-                    System.out.println("Received: " + request);
-                    String response = callCommand(request);
-                    System.out.println("Sending response: " + response);
-                    out.println(response);
+    //                 String request = in.readLine(); 
+    //                 System.out.println("Received: " + request);
+    //                 String response = callCommand(request);
+    //                 System.out.println("Sending response: " + response);
+    //                 out.println(response);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }  
-    }
+    //             } catch (Exception e) {
+    //                 e.printStackTrace();
+    //             }
+    //         }
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }  
+    // }
 
-    private static void handleUDPRequest() {
-        try (DatagramSocket UDPSocket = new DatagramSocket(PORT)) {
-            System.out.println("UDP server started and listening on PORT " + PORT);
+    // private static void handleUDPRequest() {
+    //     try (DatagramSocket UDPSocket = new DatagramSocket(PORT)) {
+    //         System.out.println("UDP server started and listening on PORT " + PORT);
 
-            while (true) {
-                byte[] buffer = new byte[256];
-                DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
-                UDPSocket.receive(requestPacket);
+    //         while (true) {
+    //             byte[] buffer = new byte[256];
+    //             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
+    //             UDPSocket.receive(requestPacket);
 
-                System.out.println("Datagram Received.");
+    //             System.out.println("Datagram Received.");
 
-                String request = new String(requestPacket.getData(), 0, requestPacket.getLength());
-                System.out.println("Received Data: " + request);
+    //             String request = new String(requestPacket.getData(), 0, requestPacket.getLength());
+    //             System.out.println("Received Data: " + request);
 
-                String response = callCommand(request);
+    //             String response = callCommand(request);
 
-                byte[] responseData = response.getBytes();
-                DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, requestPacket.getAddress(), requestPacket.getPort());
+    //             byte[] responseData = response.getBytes();
+    //             DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, requestPacket.getAddress(), requestPacket.getPort());
                 
-                UDPSocket.send(responsePacket);
-                UDPSocket.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    //             UDPSocket.send(responsePacket);
+    //             UDPSocket.close();
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 
     //Example Request: 
             // HELO 1 CID1
@@ -141,12 +178,14 @@ public class TTTPServer {
             // |*|*|*|
             // |*|X|*|
             // |*|*|*|
-    private static String callCommand(String request) {
-        String[] requestArgs = request.split("\\s+");
-        String command = requestArgs[0];
-        String[] args = Arrays.copyOfRange(requestArgs, 1, requestArgs.length);
+            //
 
-        String response = "";
+    // private static String callCommand(String request) {
+    //     String[] requestArgs = request.split("\\s+");
+    //     String command = requestArgs[0];
+    //     String[] args = Arrays.copyOfRange(requestArgs, 1, requestArgs.length);
+
+    //     String response = "";
         
 
         // if (command == "HELO" & args[0] != null) {
@@ -165,13 +204,13 @@ public class TTTPServer {
         //     }
         // } else { 
 
-            if (COMMANDS.get(command).equals("request")) {
-                return ch.handleRequest(command, args);
-            } else {
-                System.out.println("Invalid command: " + command);
-                return "Error";
-            }
-        }
+        //     if (COMMANDS.get(command).equals("request")) {
+        //         return ch.handleRequest(command, args);
+        //     } else {
+        //         System.out.println("Invalid command: " + command);
+        //         return "Error";
+        //     }
+        // }
 
         // if (COMMANDS.get(command).equals("request")) {
         //     response = ch.handleRequest(command, args);
@@ -190,7 +229,7 @@ public class TTTPServer {
         // }
 
         
-    }
-//}
+    // }
+}
 
 

@@ -1,5 +1,7 @@
 package Java;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -7,9 +9,42 @@ public class CommandHandler {
 
     private AtomicInteger sessionIdCounter = new AtomicInteger(1);
     private AtomicInteger gameIdCounter = new AtomicInteger(1);
+    private static final HashMap<String, String> COMMANDS = new HashMap<String, String>();
+    static {
+        COMMANDS.put("CREA", "request");
+        COMMANDS.put("GDBY", "request");
+        COMMANDS.put("HELO", "request");
+        COMMANDS.put("JOIN", "request");
+        COMMANDS.put("LIST", "request");
+        COMMANDS.put("MOVE", "request");
+        COMMANDS.put("QUIT", "request");
+        COMMANDS.put("STAT", "request");
+        COMMANDS.put("BORD", "response");
+        COMMANDS.put("GAMS", "response");
+        COMMANDS.put("JOND", "response");
+        COMMANDS.put("SESS", "response");
+        COMMANDS.put("TERM", "response");
+        COMMANDS.put("YRMV", "response");
+        
+    }
 
     public CommandHandler() {
         
+    }
+
+    public String callCommand(String request) {
+        String[] requestArgs = request.split("\\s+");
+        String command = requestArgs[0];
+        String[] args = Arrays.copyOfRange(requestArgs, 1, requestArgs.length);
+
+
+
+            if (COMMANDS.get(command).equals("request")) {
+                return handleRequest(command, args);
+            } else {
+                System.out.println("Invalid command: " + command);
+                return "Error";
+            }
     }
 
     public String handleRequest(String command, String[] parameters) {
