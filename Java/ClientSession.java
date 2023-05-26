@@ -13,7 +13,7 @@ public class ClientSession {
     private Socket clientSocket;
     // Other session data
     
-    public ClientSession(String sessionId, Socket clientSocket, Datagr) {
+    public ClientSession(String sessionId, Socket clientSocket /*Datagram*/) {
         this.sessionId = sessionId;
         this.clientSocket = clientSocket;
         
