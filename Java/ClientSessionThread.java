@@ -46,57 +46,57 @@ public class ClientSessionThread extends Thread {
         }
     }
 
-    private void handleTCPRequest() {
-        Socket TCPSocket = null;
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("TCP server started and listening on port " + PORT);
-            while ((TCPSocket = serverSocket.accept()) != null) {
-                System.out.println("New TCP client connected: " + TCPSocket.getInetAddress().getHostAddress());
+    // private void handleTCPRequest() {
+    //     Socket TCPSocket = null;
+    //     try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+    //         System.out.println("TCP server started and listening on port " + PORT);
+    //         while ((TCPSocket = serverSocket.accept()) != null) {
+    //             System.out.println("New TCP client connected: " + TCPSocket.getInetAddress().getHostAddress());
 
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(TCPSocket.getInputStream()));
-                    PrintWriter out = new PrintWriter(TCPSocket.getOutputStream(), true)) {
+    //             try (BufferedReader in = new BufferedReader(new InputStreamReader(TCPSocket.getInputStream()));
+    //                 PrintWriter out = new PrintWriter(TCPSocket.getOutputStream(), true)) {
             
-                    String request = in.readLine(); 
-                    System.out.println("Received: " + request);
-                    String response = callCommand(request);
-                    System.out.println("Sending response: " + response);
-                    out.println(response);
+    //                 String request = in.readLine(); 
+    //                 System.out.println("Received: " + request);
+    //                 String response = callCommand(request);
+    //                 System.out.println("Sending response: " + response);
+    //                 out.println(response);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }  
-    }
+    //             } catch (Exception e) {
+    //                 e.printStackTrace();
+    //             }
+    //         }
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }  
+    // }
 
-    private void handleUDPRequest() {
-        try (DatagramSocket UDPSocket = new DatagramSocket(PORT)) {
-            System.out.println("UDP server started and listening on PORT " + PORT);
+    // private void handleUDPRequest() {
+    //     try (DatagramSocket UDPSocket = new DatagramSocket(PORT)) {
+    //         System.out.println("UDP server started and listening on PORT " + PORT);
 
-            while (true) {
-                byte[] buffer = new byte[256];
-                DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
-                UDPSocket.receive(requestPacket);
+    //         while (true) {
+    //             byte[] buffer = new byte[256];
+    //             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
+    //             UDPSocket.receive(requestPacket);
 
-                System.out.println("Datagram Received.");
+    //             System.out.println("Datagram Received.");
 
-                String request = new String(requestPacket.getData(), 0, requestPacket.getLength());
-                System.out.println("Received Data: " + request);
+    //             String request = new String(requestPacket.getData(), 0, requestPacket.getLength());
+    //             System.out.println("Received Data: " + request);
 
-                String response = callCommand(request);
+    //             String response = callCommand(request);
 
-                byte[] responseData = response.getBytes();
-                DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, requestPacket.getAddress(), requestPacket.getPort());
+    //             byte[] responseData = response.getBytes();
+    //             DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, requestPacket.getAddress(), requestPacket.getPort());
                 
-                UDPSocket.send(responsePacket);
-                UDPSocket.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    //             UDPSocket.send(responsePacket);
+    //             UDPSocket.close();
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 
 
 }
