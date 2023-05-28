@@ -1,5 +1,6 @@
 package Java;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -7,9 +8,12 @@ public class CommandHandler {
 
     private AtomicInteger sessionIdCounter = new AtomicInteger(1);
     private AtomicInteger gameIdCounter = new AtomicInteger(1);
+    private HashMap<Integer, String> clientList;
+    private int currentClient;
 
-    public CommandHandler() {
-        
+    public CommandHandler(HashMap<Integer, String> clientList, int clientID) {
+        this.clientList = clientList;
+        this.currentClient = clientID;
     }
 
     public String handleRequest(String command, String[] parameters) {
@@ -68,18 +72,22 @@ public class CommandHandler {
     private String createSession(String[] parameters) {
         String version = parameters[0];
         String clientId = parameters[1];
-
-        String sessionId = generateSessionId();
-        System.out.println("Generated Session ID: " + sessionId);
-
-        return "SESS " + sessionId + " " + clientId;
+        if (clientList != null) {
+            if (clientList.keySet().contains(currentClient) && clientList.get(currentClient).equals("")) {
+                String sessionId = "SID" + clientList.keySet().size();
+                System.out.println("Generated Session ID: " + sessionId);
+                return "SESS " + sessionId + " " + clientId;
+            }
+        }
+        return "ERROR: Session Already Created";
+        
 
     }
 
-    private String generateSessionId() {
-        int sessionId = sessionIdCounter.getAndIncrement();
-        return "SID" + sessionId;
-    }
+    // private String generateSessionId() {
+    //     int sessionId = sessionIdCounter.getAndIncrement();
+    //     return "SID" + sessionId;
+    // }
 
     /**
      * JOIN
