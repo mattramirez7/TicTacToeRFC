@@ -42,6 +42,7 @@ public class Client {
             while(!newClient.getTerminated()){
                 String[] response=in.readLine().split(" ");
                 String message= handleResponse(response, newClient);
+                System.out.println("Received response from the server: " + response);
                 if(!newClient.getTerminated() && !message.equals("")){
                     System.out.println("Sending message to server: " + message);
                     out.println(message + "\r\n");
@@ -111,10 +112,10 @@ public class Client {
         if(action.equals("SESS")){ //emily make sure to prompt for creating, joining or looking at a list of open session ids
             request = getSess(response, newClient);
         } else if (action.equals("BORD")){ // audrey
-            request = getBoard(response, newClient);
+            request = getBord(response, newClient);
         } else if (action.equals("GAMS")){ // emily
             request = getGams(response, newClient);
-        } else if (action.equals("GDBY")){ // audrey print goodbye close socket, update boolean
+        } else if (action.equals("GDBY")){ // audrey
             request = getGdby(response, newClient);
         } else if (action.equals("JOND")){ // emily
             request = getJond(response, newClient);
@@ -161,10 +162,11 @@ public class Client {
     }
 
 
-    public static String getBoard(String[] response, ClientHandler newClient){
+    public static String getBord(String[] response, ClientHandler newClient){
         if(response.length==2){ // If there is not enough players to be playing this game, the command will respond solely with the game-identifier and the client-identifier of the other player.
             System.out.println("There are not enough players playing the game.");
         }else if(response.length==6){ //[gameid,clientid of X player,clientid of o player, clientid whose turn, board symbols]
+            newClient.setBoard(response[5]);
             System.out.println("Current Board: "+response[5]);
         }else if(response.length==7){// [gameid,clientid of X player,clientid of o player, clientid whose turn, board symbols, clientid who won]
             System.out.println("The game has been won by "+response[6]);
@@ -190,8 +192,8 @@ public class Client {
 
     public static String getGdby(String[] response, ClientHandler newClient){
         System.out.println("The server ended the session");
-        System.out.println("Do you wish to start a new session? (y/n)");
-
+        newClient.setTerminated(true);
+        // System.out.println("Do you wish to start a new session? (y/n)");
         return "";
     }
 
