@@ -43,6 +43,7 @@ public class Client {
                 String[] response=in.readLine().split(" ");
                 String message= handleResponse(response, newClient);
                 if(!newClient.getTerminated() && !message.equals("")){
+                    System.out.println("Sending message to server: " + message);
                     out.println(message + "\r\n");
                 } 
             }
@@ -60,6 +61,44 @@ public class Client {
         }
 
         } else if (service.equalsIgnoreCase("UDP")) {
+            try {
+                InetAddress address = InetAddress.getByName(host);
+                DatagramSocket socket = new DatagramSocket();
+
+                String greetingMessage = "HELO " + version + " " + newClient.getClientID();
+                byte[] sendData = greetingMessage.getBytes();
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
+                socket.send(sendPacket);
+
+                while(!newClient.getTerminated()){
+                    // Receive response from the server
+                    byte[] receiveData = new byte[1024];
+                    DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                    socket.receive(receivePacket);
+
+                    // Extract the response message
+                    String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                    System.out.println("Received response from the server: " + response);
+
+                    // Handle the response
+                    String[] responseParts = response.split(" ");
+                    String message = handleResponse(responseParts, newClient);
+                    if (!newClient.getTerminated() && !message.isEmpty()) {
+                        System.out.println("Sending message to server: " + message);
+
+                        // Send message to the server
+                        sendData = message.getBytes();
+                        sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
+                        socket.send(sendPacket);
+                    }
+                }
+
+                socket.close();
+                System.out.println("UDP connection closed.");
+
+            } catch( Exception e ){
+            e.printStackTrace();
+        }
             
         } else {
             System.out.println("Invalid service. Please choose TCP or UDP.");
@@ -72,11 +111,11 @@ public class Client {
         if(action.equals("SESS")){ //emily make sure to prompt for creating, joining or looking at a list of open session ids
             request = getSess(response, newClient);
         } else if (action.equals("BORD")){ // audrey
-            request = getJOHD(response, newClient);
+            request = getBoard(response, newClient);
         } else if (action.equals("GAMS")){ // emily
             request = getGams(response, newClient);
         } else if (action.equals("GDBY")){ // audrey print goodbye close socket, update boolean
-            request = getJOHD(response, newClient);
+            request = getGdby(response, newClient);
         } else if (action.equals("JOND")){ // emily
             request = getJond(response, newClient);
         } else if (action.equals("TERM")){ // audrey
@@ -121,6 +160,20 @@ public class Client {
         }
     }
 
+
+    public static String getBoard(String[] response, ClientHandler newClient){
+        if(response.length==2){ // If there is not enough players to be playing this game, the command will respond solely with the game-identifier and the client-identifier of the other player.
+            System.out.println("There are not enough players playing the game.");
+        }else if(response.length==6){ //[gameid,clientid of X player,clientid of o player, clientid whose turn, board symbols]
+            System.out.println("Current Board: "+response[5]);
+        }else if(response.length==7){// [gameid,clientid of X player,clientid of o player, clientid whose turn, board symbols, clientid who won]
+            System.out.println("The game has been won by "+response[6]);
+            System.out.println("The final game board: "+response[5]);
+        }
+
+        return "";
+    }
+
     public static String getGams(String[] response, ClientHandler newClient){
         System.out.println("Here is a list of available games:");
         for(int i = 1; i < response.length; i++) {
@@ -133,6 +186,13 @@ public class Client {
         String gameID = scanner.nextLine();
 
         return "JOIN " + gameID;
+    }
+
+    public static String getGdby(String[] response, ClientHandler newClient){
+        System.out.println("The server ended the session");
+        System.out.println("Do you wish to start a new session? (y/n)");
+
+        return "";
     }
 
     public static String getJond(String[] response, ClientHandler newClient){
