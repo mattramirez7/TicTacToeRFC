@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class TTTPServer {
-    private HashSet<String> availableGames = new HashSet<String>();
     private static HashMap<String, Game> games;
     private static HashMap<String, ClientData> clients;
     private static final List<String> COMMANDS = new ArrayList<String>();
@@ -43,9 +42,9 @@ public class TTTPServer {
 
             while (true) {
                 Socket tcpSocket = server.accept();
-                System.out.println("New TCP client connected: " + tcpSocket.getInetAddress().getHostAddress());
 
                 ClientHandlerTCP clientSock = new ClientHandlerTCP(tcpSocket);
+                System.out.println("New TCP client connected: " + clientSock.id);
                 new Thread(clientSock).start();
             }
         } catch (IOException e) {
@@ -96,6 +95,7 @@ public class TTTPServer {
 
     // ClientHandler class
     static class ClientHandlerTCP implements Runnable {
+        private static final Boolean False = null;
         private Random random;
         private int id;
         private final Socket clientSocket;
@@ -115,35 +115,63 @@ public class TTTPServer {
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 String line;
                 while ((line = in.readLine()) != null) {
-                    System.out.printf(" Sent from client " + this.id + ": %s\n", line);
+                    System.out.printf("Client " + this.id + "sent: %s\n", line);
                     String response = callCommand(line, this.id);
 
                     String[] responseArgs = response.split("\\s+");
                     String command = responseArgs[0];
                     String[] args = Arrays.copyOfRange(responseArgs, 1, responseArgs.length);
+                    Boolean startGame = false;
 
                     if (command.equals("SESS")) {
                         int sessionId = Integer.parseInt(args[0]);
                         String clientId = args[1];
-                        ClientData newClient = new ClientData(sessionId);
+                        ClientData newClient = new ClientData(sessionId, out);
                         clients.put(clientId, newClient);
-                        System.out.println(clients.toString());
                     }
 
                     if (command.equals("JOND")) {
                         String clientId = args[0];
                         String gameId = args[1];
-
                         if (games.keySet().contains(gameId)) {
                             games.get(gameId).addPlayer(clientId);
+                            startGame = true;
                         } else {
                             Game newGame = new Game();
                             newGame.addPlayer(clientId);
+                            games.put(gameId, newGame);
                         }
                         clients.get(clientId).setGameId(gameId);
                     }
-
+                    if (command.equals("BORD") && args.length > 4) {
+                        String gameId = args[0];
+                        String nextPlayerMove = args[3];
+                        String gameBoard = args[4];
+                        games.get(gameId).updateBoard(gameBoard);
+                        clients.get(nextPlayerMove).getOut().println(response);
+                        startGame = true;
+                    }
                     out.println(response);
+
+                    if (startGame) {
+                        String gameId = "";
+                        if (args.length > 4) {
+                            gameId = args[0];
+                        } else {
+                            gameId = args[1];
+                        }
+                        String gameBoard = games.get(gameId).getBoard();
+                        List<String> players = games.get(gameId).getPlayers();
+
+                        int remainingStars = gameBoard.length() - gameBoard.replace("*", "").length();
+                        String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
+
+                        for (String player : games.get(gameId).getPlayers()) {
+                            PrintWriter playerOut = clients.get(player).getOut();
+                            playerOut.println("YMRV " + gameId + " " + currentPlayer);
+                        }
+                    }
+
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -211,10 +239,12 @@ public class TTTPServer {
     public static class ClientData {
         private int sessionId;
         private String gameId;
+        private PrintWriter out;
     
-        public ClientData(int sessionId) {
+        public ClientData(int sessionId, PrintWriter out) {
             this.sessionId = sessionId;
             this.gameId = null; // Initialize game ID as null (optional)
+            this.out = out;
         }
     
         // Getters and setters (optional) for sessionId and gameId
@@ -232,6 +262,10 @@ public class TTTPServer {
     
         public void setGameId(String gameId) {
             this.gameId = gameId;
+        }
+
+        public PrintWriter getOut() {
+            return out;
         }
     }
     

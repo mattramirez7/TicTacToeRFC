@@ -21,6 +21,10 @@ public class Game {
         return this.gameBoard;
     }
 
+    public void updateBoard(String board) {
+        this.gameBoard = board;
+    }
+
     public List<String> getPlayers() {
         return this.players;
     }
