@@ -7,8 +7,8 @@ import java.util.concurrent.*;
 
 public class TTTPServer {
     private HashSet<String> availableGames = new HashSet<String>();
-    private HashMap<String, String> games;
-    private static HashMap<Integer, String> clients;
+    private static HashMap<String, ArrayList<String>> games;
+    private static HashMap<Integer, ClientData> clients;
     private static final List<String> COMMANDS = new ArrayList<String>();
 
     static {
@@ -26,7 +26,8 @@ public class TTTPServer {
     static ExecutorService exec = null;
 
     public static void main(String[] args) {
-        clients = new HashMap<Integer, String>();
+        clients = new HashMap<Integer, ClientData>();
+        games = new HashMap<String, ArrayList<String>>();
 
         exec = Executors.newFixedThreadPool(10);
         exec.submit(() -> handleTCPRequest());
@@ -86,13 +87,13 @@ public class TTTPServer {
 
         if (clients.keySet() != null) {
             if (!clients.keySet().contains(clientID)) {
-                clients.put(clientID, "");
+                clients.put(clientID, new ClientData(""));
             }
         } else {
-            clients.put(clientID, "");
+            clients.put(clientID, new ClientData(""));
         }
 
-        CommandHandler ch = new CommandHandler(clients, clientID);
+        CommandHandler ch = new CommandHandler(clients, clientID, games);
         if (COMMANDS.contains(command)) {
             return ch.handleRequest(command, args);
         } else {
@@ -132,7 +133,8 @@ public class TTTPServer {
                     if (command.equals("SESS")) {
                         int sessionId = Integer.parseInt(args[0]);
                         String clientId = args[1];
-                        clients.put(sessionId, clientId);
+                        clients.get(sessionId).setClientId(clientId);
+                        System.out.println(clients.toString());
                     }
 
                     out.println(response);
@@ -199,5 +201,33 @@ public class TTTPServer {
             }
         }
     }
+
+    public static class ClientData {
+        private String clientId;
+        private String gameId;
+    
+        public ClientData(String clientId) {
+            this.clientId = clientId;
+            this.gameId = null; // Initialize game ID as null (optional)
+        }
+    
+        // Getters and setters (optional) for sessionId and gameId
+        public String getClientId() {
+            return clientId;
+        }
+    
+        public void setClientId(String sessionId) {
+            this.clientId = sessionId;
+        }
+    
+        public String getGameId() {
+            return gameId;
+        }
+    
+        public void setGameId(String gameId) {
+            this.gameId = gameId;
+        }
+    }
+    
 }
 // }

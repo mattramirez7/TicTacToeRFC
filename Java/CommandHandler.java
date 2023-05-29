@@ -1,18 +1,22 @@
 package Java;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandHandler {
 
     private AtomicInteger gameIdCounter = new AtomicInteger(1);
-    private HashMap<Integer, String> clientList;
+    private HashMap<Integer, TTTPServer.ClientData> clientList;
     private int currentClient;
+    private HashMap<String, ArrayList<String>> games;
 
-    public CommandHandler(HashMap<Integer, String> clientList, int clientID) {
+    public CommandHandler(HashMap<Integer, TTTPServer.ClientData> clientList, int clientID, HashMap<String, ArrayList<String>> games) {
         this.clientList = clientList;
         this.currentClient = clientID;
+        this.games = games;
     }
 
     public String handleRequest(String command, String[] parameters) {
@@ -53,6 +57,7 @@ public class CommandHandler {
     private String createGame(String[] parameters) {
         String clientId = parameters[0];
         String gameId = generateGameId();
+
         System.out.println("Generated Game ID: " + gameId);
         return "JOND " + clientId + " " + gameId;
     }
@@ -71,10 +76,14 @@ public class CommandHandler {
     private String createSession(String[] parameters) {
         String version = parameters[0];
         String clientId = parameters[1];
-        if (clientList != null) {
-            if (clientList.keySet().contains(currentClient) && clientList.get(currentClient).equals("")) {
-                return "SESS " + currentClient + " " + clientId;
+
+        if (clientList.keySet().contains(currentClient) && clientList.get(currentClient).getClientId().equals("")) {
+            for (TTTPServer.ClientData client : clientList.values()) {
+                if (client.getClientId().equals(clientId)) {
+                    return "ERROR: Identifier already taken";
+                }
             }
+            return "SESS " + currentClient + " " + clientId;
         }
         return "ERROR: Session Already Created";
 
