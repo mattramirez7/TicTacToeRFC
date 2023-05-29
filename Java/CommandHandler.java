@@ -1,21 +1,18 @@
 package Java;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class CommandHandler {
 
-    private AtomicInteger gameIdCounter = new AtomicInteger(1);
-    private HashMap<Integer, TTTPServer.ClientData> clientList;
-    private int currentClient;
-    private HashMap<String, ArrayList<String>> games;
+    private HashMap<String, TTTPServer.ClientData> clientList;
+    private int currentSessionId;
+    private HashMap<String, Game> games;
 
-    public CommandHandler(HashMap<Integer, TTTPServer.ClientData> clientList, int clientID, HashMap<String, ArrayList<String>> games) {
+    public CommandHandler(HashMap<String, TTTPServer.ClientData> clientList, int sessionID, HashMap<String, Game> games) {
         this.clientList = clientList;
-        this.currentClient = clientID;
+        this.currentSessionId = sessionID;
         this.games = games;
     }
 
@@ -56,16 +53,18 @@ public class CommandHandler {
      */
     private String createGame(String[] parameters) {
         String clientId = parameters[0];
-        String gameId = generateGameId();
+        if (clientList.get(clientId) == null) {
+            return "Please start a session first";
+        }
 
-        System.out.println("Generated Game ID: " + gameId);
+        if (clientList.get(clientId).getGameId() != null) {
+            return "ERROR: Already in game";
+        }
+
+        String gameId = "GID" + games.size() ;
         return "JOND " + clientId + " " + gameId;
     }
 
-    private String generateGameId() {
-        int gameId = gameIdCounter.getAndIncrement();
-        return "SID" + gameId;
-    }
 
     /**
      * HELO
@@ -76,16 +75,18 @@ public class CommandHandler {
     private String createSession(String[] parameters) {
         String version = parameters[0];
         String clientId = parameters[1];
+        
 
-        if (clientList.keySet().contains(currentClient) && clientList.get(currentClient).getClientId().equals("")) {
-            for (TTTPServer.ClientData client : clientList.values()) {
-                if (client.getClientId().equals(clientId)) {
-                    return "ERROR: Identifier already taken";
+            for (String client : clientList.keySet()) {
+                if (clientList.get(client).getSessionId() == currentSessionId) {
+                    return "ERROR: Session has already been created"; 
                 }
             }
-            return "SESS " + currentClient + " " + clientId;
-        }
-        return "ERROR: Session Already Created";
+            if (clientList.keySet().contains(clientId)) {
+                return "ERROR: Identifier \'" + clientId + "\' is unavailable";
+            }
+            return "SESS " + currentSessionId + " " + clientId;
+        
 
     }
 

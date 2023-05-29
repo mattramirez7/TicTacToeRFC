@@ -1,27 +1,27 @@
 package Java;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class Game {
-    private String gameID; 
-    private String[][] gameBoard;
-    private String[] players;
+    private String gameBoard;
+    private List<String> players;
     
 
-
-    public Game(int boardSize, String gameID) {
-        this.gameBoard = new String[boardSize][boardSize];
-        this.gameID = gameID;
+    public Game() {
+        this.gameBoard = "|*|*|*|*|*|*|*|*|*|";
+        this.players = new ArrayList<String>();
     }
 
-    public String getGameID() {
-        return this.gameID;
-    }
-    
-    public String getStringBoard() {
-        return null;
+    public void addPlayer(String player) {
+        this.players.add(player);
     }
 
-    public String[][] getBoard() {
-        return null;
+    public String getBoard() {
+        return this.gameBoard;
+    }
+
+    public List<String> getPlayers() {
+        return this.players;
     }
 }

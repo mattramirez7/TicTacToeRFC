@@ -7,8 +7,8 @@ import java.util.concurrent.*;
 
 public class TTTPServer {
     private HashSet<String> availableGames = new HashSet<String>();
-    private static HashMap<String, ArrayList<String>> games;
-    private static HashMap<Integer, ClientData> clients;
+    private static HashMap<String, Game> games;
+    private static HashMap<String, ClientData> clients;
     private static final List<String> COMMANDS = new ArrayList<String>();
 
     static {
@@ -26,8 +26,8 @@ public class TTTPServer {
     static ExecutorService exec = null;
 
     public static void main(String[] args) {
-        clients = new HashMap<Integer, ClientData>();
-        games = new HashMap<String, ArrayList<String>>();
+        clients = new HashMap<String, ClientData>();
+        games = new HashMap<String, Game>();
 
         exec = Executors.newFixedThreadPool(10);
         exec.submit(() -> handleTCPRequest());
@@ -80,20 +80,12 @@ public class TTTPServer {
     // |*|*|*|
     // |*|X|*|
     // |*|*|*|
-    private static String callCommand(String request, int clientID) {
+    private static String callCommand(String request, int sessionID) {
         String[] requestArgs = request.split("\\s+");
         String command = requestArgs[0];
         String[] args = Arrays.copyOfRange(requestArgs, 1, requestArgs.length);
 
-        if (clients.keySet() != null) {
-            if (!clients.keySet().contains(clientID)) {
-                clients.put(clientID, new ClientData(""));
-            }
-        } else {
-            clients.put(clientID, new ClientData(""));
-        }
-
-        CommandHandler ch = new CommandHandler(clients, clientID, games);
+        CommandHandler ch = new CommandHandler(clients, sessionID, games);
         if (COMMANDS.contains(command)) {
             return ch.handleRequest(command, args);
         } else {
@@ -133,8 +125,22 @@ public class TTTPServer {
                     if (command.equals("SESS")) {
                         int sessionId = Integer.parseInt(args[0]);
                         String clientId = args[1];
-                        clients.get(sessionId).setClientId(clientId);
+                        ClientData newClient = new ClientData(sessionId);
+                        clients.put(clientId, newClient);
                         System.out.println(clients.toString());
+                    }
+
+                    if (command.equals("JOND")) {
+                        String clientId = args[0];
+                        String gameId = args[1];
+
+                        if (games.keySet().contains(gameId)) {
+                            games.get(gameId).addPlayer(clientId);
+                        } else {
+                            Game newGame = new Game();
+                            newGame.addPlayer(clientId);
+                        }
+                        clients.get(clientId).setGameId(gameId);
                     }
 
                     out.println(response);
@@ -203,21 +209,21 @@ public class TTTPServer {
     }
 
     public static class ClientData {
-        private String clientId;
+        private int sessionId;
         private String gameId;
     
-        public ClientData(String clientId) {
-            this.clientId = clientId;
+        public ClientData(int sessionId) {
+            this.sessionId = sessionId;
             this.gameId = null; // Initialize game ID as null (optional)
         }
     
         // Getters and setters (optional) for sessionId and gameId
-        public String getClientId() {
-            return clientId;
+        public int getSessionId() {
+            return sessionId;
         }
     
-        public void setClientId(String sessionId) {
-            this.clientId = sessionId;
+        public void setSessionId(int sessionId) {
+            this.sessionId = sessionId;
         }
     
         public String getGameId() {
