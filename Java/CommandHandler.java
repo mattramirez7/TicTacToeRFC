@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandHandler {
 
-    private AtomicInteger sessionIdCounter = new AtomicInteger(1);
     private AtomicInteger gameIdCounter = new AtomicInteger(1);
     private HashMap<Integer, String> clientList;
     private int currentClient;
@@ -74,20 +73,12 @@ public class CommandHandler {
         String clientId = parameters[1];
         if (clientList != null) {
             if (clientList.keySet().contains(currentClient) && clientList.get(currentClient).equals("")) {
-                String sessionId = "SID" + clientList.keySet().size();
-                System.out.println("Generated Session ID: " + sessionId);
-                return "SESS " + sessionId + " " + clientId;
+                return "SESS " + currentClient + " " + clientId;
             }
         }
         return "ERROR: Session Already Created";
-        
 
     }
-
-    // private String generateSessionId() {
-    //     int sessionId = sessionIdCounter.getAndIncrement();
-    //     return "SID" + sessionId;
-    // }
 
     /**
      * JOIN
@@ -101,14 +92,12 @@ public class CommandHandler {
      */
     private void joinGame(String gameIdentifier) {
 
-
     }
 
     private String selectedGame() {
         // Select from the listed games
         return "";
     }
-
 
     /**
      * LIST
@@ -122,7 +111,7 @@ public class CommandHandler {
         return null;
     }
 
-     /**
+    /**
      * MOVE
      * Storing Cleint Move
      * 
@@ -144,38 +133,14 @@ public class CommandHandler {
     }
 
     /**
-     * STAT: 
+     * STAT:
      * Client-sent message
      * 
      * @param gameIdentifier -
      */
 
-    // private String[] stats(String gameIdentifier){        
-    //     return [] ;
+    // private String[] stats(String gameIdentifier){
+    // return [] ;
     // }
 
-    
-
-    
-    // public String createResponse(String responseType, String[] parameters) {
-    //     switch (responseType) {
-    //         case ("BORD"):
-    //             break;
-    //         case ("GAMS"):
-    //             break;
-    //         case ("GDBY"):
-    //             break;
-    //         case ("JOND"):
-    //             break;
-    //         case ("SESS"):
-    //             break;
-    //         case ("TERM"):
-    //             break;
-    //         case ("YRMV"):
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    //     return "";
-    // }
 }
