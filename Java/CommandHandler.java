@@ -7,11 +7,11 @@ import java.util.List;
 
 public class CommandHandler {
 
-    private HashMap<String, TTTPServer.ClientData> clientList;
+    private HashMap<String, ClientData> clientList;
     private int currentSessionId;
     private HashMap<String, Game> games;
 
-    public CommandHandler(HashMap<String, TTTPServer.ClientData> clientList, int sessionID, HashMap<String, Game> games) {
+    public CommandHandler(HashMap<String, ClientData> clientList, int sessionID, HashMap<String, Game> games) {
         this.clientList = clientList;
         this.currentSessionId = sessionID;
         this.games = games;
