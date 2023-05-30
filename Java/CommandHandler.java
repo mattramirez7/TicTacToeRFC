@@ -72,6 +72,9 @@ public class CommandHandler {
      * @return session identifier
      */
     private String createSession(String[] parameters) {
+        if (parameters.length < 2) {
+            return "ERROR: Invalid Parameters";
+        }
         String version = parameters[0];
         String clientId = parameters[1];
         
