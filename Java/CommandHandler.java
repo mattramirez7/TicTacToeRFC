@@ -175,12 +175,18 @@ public class CommandHandler {
         }
         int move = Integer.parseInt(parameters[1]);
         List<String> players = games.get(gameId).getPlayers();
-        String gameBoard = games.get(gameId).getBoard();
+        Game game = games.get(gameId);
+        String gameBoard = game.getBoard();
         String[] boardContent = gameBoard.substring(1).split("\\|");
-
         int remainingStars = gameBoard.length() - gameBoard.replace("*", "").length();
         String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
         String nextPlayer = currentPlayer.equals(players.get(0)) ? players.get(1) : players.get(0);
+
+        if (game.gameFinished()) {
+            String winner = game.getWinner();
+            return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " " + gameBoard + " " + winner;
+        }
+
         String marker = currentPlayer.equals(players.get(0)) ? "X" : "O";
 
         if (move < 1 || move > 9) {

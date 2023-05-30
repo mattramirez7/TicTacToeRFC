@@ -67,7 +67,8 @@ public class Game {
         if (!checkWinningCondition()) {
             for (String[] row : this.gameBoard) {
                 for (int i = 0; i < row.length; i ++) {
-                    if (row[i] == "*") {
+                    System.out.print(row[i]);
+                    if (row[i].equals("*")) {
                         return false;
                     }
                 }
