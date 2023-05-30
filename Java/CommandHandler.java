@@ -44,11 +44,6 @@ public class CommandHandler {
         return "";
     }
 
-
-    // private String prettyPrintBoard(String[] parameters) {
-    //     return null;
-    // }
-
     /**
      * CREA
      * Client-sent message
