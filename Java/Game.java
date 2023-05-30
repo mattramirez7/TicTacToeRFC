@@ -9,7 +9,7 @@ public class Game {
     
 
     public Game() {
-        this.gameBoard = "|**|*|*|*|*|*|*|*|";
+        this.gameBoard = "|*|*|*|*|*|*|*|*|*|";
         this.players = new ArrayList<String>();
     }
 

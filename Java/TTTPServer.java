@@ -152,6 +152,7 @@ public class TTTPServer {
                         startGame = true;
                     }
                     out.println(response);
+                    System.out.println("Sending response to user" + response);
 
                     if (startGame) {
                         String gameId = "";
@@ -164,6 +165,7 @@ public class TTTPServer {
                         List<String> players = games.get(gameId).getPlayers();
 
                         int remainingStars = gameBoard.length() - gameBoard.replace("*", "").length();
+                        System.out.println(remainingStars);
                         String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
 
                         for (String player : games.get(gameId).getPlayers()) {
