@@ -113,8 +113,8 @@ public class TTTPServer {
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                String line;
-                while ((line = in.readLine()) != null) {
+                String line = "";
+                while ((line = in.readLine()) != null && !line.equals("") && line != null) {
                     System.out.printf("Client " + this.id + "sent: %s\n", line);
                     String response = callCommand(line, this.id);
 
