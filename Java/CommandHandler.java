@@ -36,11 +36,18 @@ public class CommandHandler {
                 break;
             case ("STAT"):
                 return getGameStatus(parameters);
+            // case ("SHOW"):
+            //     return prettyPrintBoard(parameters);
             default:
                 break;
         }
         return "";
     }
+
+
+    // private String prettyPrintBoard(String[] parameters) {
+    //     return null;
+    // }
 
     /**
      * CREA
