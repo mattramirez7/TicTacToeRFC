@@ -168,9 +168,12 @@ public class Client {
         }else if(response.length==6){ //[gameid,clientid of X player,clientid of o player, clientid whose turn, board symbols]
             newClient.setBoard(response[5]);
             System.out.println("Current Board: "+response[5]);
+            System.out.println("X player: "+response[1]);
+            System.out.println("O player: "+response[2]);
         }else if(response.length==7){// [gameid,clientid of X player,clientid of o player, clientid whose turn, board symbols, clientid who won]
             System.out.println("The game has been won by "+response[6]);
             System.out.println("The final game board: "+response[5]);
+            newClient.setTerminated(true);
         }
 
         return "";
@@ -220,33 +223,4 @@ public class Client {
             return "";
         }
     }
-
-
-
-
-    /*
-
-    -Client is prompted for TCP or UDP
-    -Ask for Self identifying name
-    -Establish Connected
-    -Start new game or Join existing 
-        -if new game send CREA command
-        -if Join send Join command
-        -or LIST command
-
-    -JOND print out youve joined a game and game Identifier string (store this)+ print out
-    -
-    -BORD: print out board to command line do nothing else 
-    -YRMV
-        -first yrmv command check for which symbol 
-        -others, check if symbol null 
-            -otherwise check if your move
-
-    -prompt print out where to move 
-    -send MOVE command
-    -at any point client can quit send QUIT GID to server 
-    -loop back to do u want to start or join a game
-
-    - create class to check for command 
-     */
 }
