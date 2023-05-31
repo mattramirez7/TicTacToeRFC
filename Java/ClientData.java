@@ -1,16 +1,37 @@
 package Java;
 
 import java.io.PrintWriter;
+import java.net.InetAddress;
 
 public class ClientData {
     private int sessionId;
     private String gameId;
     private PrintWriter out;
+    private int portUDP;
+    private InetAddress ipAddress;
 
+    /**
+     * TCP Constructor
+     * @param sessionId - keeps track of a session which corresponds to a client
+     * @param gameId - initial game id (optional)
+     * @param out - PrintWriter object used to send back messages during game
+     */
     public ClientData(int sessionId, PrintWriter out) {
         this.sessionId = sessionId;
         this.gameId = null; // Initialize game ID as null (optional)
         this.out = out;
+    }
+
+    /**
+     * UDP Constructor
+     * @param sessionId - keeps track of a session which corresponds to client
+     * @param portUDP - Datagram packet-specific port (unique for each UDP connection)
+     * @param ipAddress - client's IP address
+     */
+    public ClientData(int sessionId, int port, InetAddress ipAddress) {
+        this.sessionId = sessionId;
+        this.portUDP = port;
+        this.ipAddress = ipAddress;
     }
 
     // Getters and setters (optional) for sessionId and gameId
@@ -32,5 +53,13 @@ public class ClientData {
 
     public PrintWriter getOut() {
         return out;
+    }
+
+    public int getPortUDP() {
+        return this.portUDP;
+    }
+
+    public InetAddress getIpAddress() {
+        return this.ipAddress;
     }
 }
