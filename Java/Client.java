@@ -35,7 +35,7 @@ public class Client {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
             // Send greeting message
-            out.println("HELO " + version + " " + newClient.getClientID());
+            out.println("HELO " + version + " " + newClient.getClientID() + "\r\n");
             // System.out.println("Hi! Welcome to the game of Tic Tac Toe, using the TTTP defined in INFO 314. If at any point during the 
             //     the game you are playing you want to quit, simply enter \"quit\". If at any time in the process you would like to check the stats of a particular game, 
             //     type \"stats\" and press enter. Best of luck!");
@@ -56,8 +56,8 @@ public class Client {
                 // System.out.println("parsed response from the server: " + response);
                 if(!newClient.getTerminated() && !message.equals("")){
                     System.out.println("Sending message to server: " + message);
-                    //out.println(message + "\r\n");
-                    out.println(message);
+                    out.print(message + "\r\n");
+                    //out.println(message);
                 } else if(newClient.getTerminated()) {
                     if(response.length == 4) {
                         if(response[2].equals(newClient.getClientID())) {
@@ -114,6 +114,7 @@ public class Client {
                         System.out.println("Sending message to server: " + message);
 
                         // Send message to the server
+                        message = message + "\r\n";
                         sendData = message.getBytes();
                         sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                         socket.send(sendPacket);
