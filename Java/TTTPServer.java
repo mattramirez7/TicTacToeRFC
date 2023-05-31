@@ -93,14 +93,11 @@ public class TTTPServer {
         }
     }
 
-    // ClientHandler class
     static class tcpHandler implements Runnable {
-        private static final Boolean False = null;
         private Random random;
         private int id;
         private final Socket clientSocket;
 
-        // Constructor
         public tcpHandler(Socket socket) {
             this.random = new Random();
             this.id = random.nextInt(Integer.MAX_VALUE) + 1;
@@ -146,6 +143,7 @@ public class TTTPServer {
                         }
                         clients.get(clientId).setGameId(gameId);
                     }
+
                     if (command.equals("BORD") && args.length > 4) {
                         String gameId = args[0];
                         String nextPlayerMove = args[3];
@@ -200,13 +198,10 @@ public class TTTPServer {
         private final DatagramSocket serverSocket;
         private final DatagramPacket receivePacket;
 
-
-        // Constructor
         public UDPhandler(DatagramSocket socket, DatagramPacket packet) {
             this.port = -1;
             this.serverSocket = socket;
             this.receivePacket = packet;
-
         }
 
         public void run() {

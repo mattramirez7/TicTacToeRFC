@@ -177,11 +177,6 @@ public class CommandHandler {
         String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
         String nextPlayer = currentPlayer.equals(players.get(0)) ? players.get(1) : players.get(0);
 
-        if (game.gameFinished()) {
-            String winner = game.getWinner();
-            return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " " + gameBoard + " " + winner;
-        }
-
         String marker = currentPlayer.equals(players.get(0)) ? "X" : "O";
 
         if (move < 1 || move > 9) {
@@ -191,9 +186,15 @@ public class CommandHandler {
             return "ERROR: Invalid move! Space " + "\'"+ move + "\'" + " is taken.";
         }
         String updatedGameBoard = gameBoard.substring(0,  (move * 2) - 1) + marker + gameBoard.substring(move * 2);
+        //
+        game.updateBoard(updatedGameBoard);
+        //
+        if (game.gameFinished()) {
+            String winner = game.getWinner();
+            return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " " + updatedGameBoard + " " + winner;
+        }
 
         return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " " + updatedGameBoard;
-
     }
 
     /**

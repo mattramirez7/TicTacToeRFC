@@ -1,7 +1,6 @@
 package Java;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Game {
     private int boardSize;
@@ -73,17 +72,15 @@ public class Game {
                     }
                 }
             }
-            return true;
-        } else {
-            return true;
         }
+        return true;
     }
 
     public String getWinner() {
         if (!gameFinished()) {
             return null;
         }
-        return winnerMarker == "X" ? players.get(0) : players.get(1);
+        return winnerMarker == "X" ? players.get(1) : players.get(0);
     }
 
     private boolean checkWinningCondition() {
