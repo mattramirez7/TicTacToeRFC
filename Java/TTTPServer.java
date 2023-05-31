@@ -227,13 +227,7 @@ public class TTTPServer {
                     String[] args = Arrays.copyOfRange(responseArgs, 1, responseArgs.length);
                     boolean startGame = false;
 
-                    // DatagramPacket responsePacket = new DatagramPacket(responseData,
-                    // responseData.length, clientIpAddress,
-                    // clientPort);
-                    // serverSocket.send(responsePacket);
-
                     if (command.equals("SESS")) {
-                        int port = Integer.parseInt(args[0]);
                         clientId = args[1];
                         ClientData newClient = new ClientData(clientPort, clientIpAddress);
                         clients.put(clientId, newClient);
