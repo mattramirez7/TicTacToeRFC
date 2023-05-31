@@ -1,9 +1,7 @@
 package Java;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-
 
 public class CommandHandler {
 
@@ -37,7 +35,7 @@ public class CommandHandler {
             case ("STAT"):
                 return getGameStatus(parameters);
             // case ("SHOW"):
-            //     return prettyPrintBoard(parameters);
+            // return prettyPrintBoard(parameters);
             default:
                 break;
         }
@@ -66,7 +64,6 @@ public class CommandHandler {
         return "JOND " + clientId + " " + gameId;
     }
 
-
     /**
      * HELO
      * Client-sent message
@@ -79,16 +76,16 @@ public class CommandHandler {
         }
         String version = parameters[0];
         String clientId = parameters[1];
-        
-            for (String client : clientList.keySet()) {
-                if (clientList.get(client).getSessionId() == currentSessionId) {
-                    return "ERROR: Session has already been created"; 
-                }
+
+        for (String client : clientList.keySet()) {
+            if (clientList.get(client).getSessionId() == currentSessionId) {
+                return "ERROR: Session has already been created";
             }
-            if (clientList.keySet().contains(clientId)) {
-                return "ERROR: Identifier \'" + clientId + "\' is unavailable";
-            }
-            return "SESS " + currentSessionId + " " + clientId;
+        }
+        if (clientList.keySet().contains(clientId)) {
+            return "ERROR: Identifier \'" + clientId + "\' is unavailable";
+        }
+        return "SESS " + currentSessionId + " " + clientId;
 
     }
 
@@ -102,7 +99,7 @@ public class CommandHandler {
      * @return void - instantiates new game session for the client given the
      *         specified individual identifier
      */
-  
+
     private String joinGame(String[] parameters) {
         String gameId = parameters[0];
         String clientId = "";
@@ -116,7 +113,7 @@ public class CommandHandler {
         }
         if (games.get(gameId) == null) {
             return "ERROR: Game " + "\'" + gameId + "\' does not exist";
-        } 
+        }
         if (games.get(gameId).getPlayers().size() > 1) {
             return "ERROR: Max 2 players per game";
         }
@@ -136,7 +133,7 @@ public class CommandHandler {
         }
         String response = "GAMS";
 
-        for (String gameId: games.keySet()) {
+        for (String gameId : games.keySet()) {
             if (body.equals("CURR")) {
                 if (games.get(gameId).getBoard().endsWith("|")) {
                     response += " " + gameId;
@@ -147,7 +144,7 @@ public class CommandHandler {
                 if (games.get(gameId).getPlayers().size() < 2) {
                     response += " " + gameId;
                 }
-            }            
+            }
         }
 
         if (response.equals("GAMS")) {
@@ -183,18 +180,20 @@ public class CommandHandler {
             return "ERROR: Invalid move! Choose a number from 1-9.";
         }
         if (!boardContent[move - 1].trim().equals("*")) {
-            return "ERROR: Invalid move! Space " + "\'"+ move + "\'" + " is taken.";
+            return "ERROR: Invalid move! Space " + "\'" + move + "\'" + " is taken.";
         }
-        String updatedGameBoard = gameBoard.substring(0,  (move * 2) - 1) + marker + gameBoard.substring(move * 2);
+        String updatedGameBoard = gameBoard.substring(0, (move * 2) - 1) + marker + gameBoard.substring(move * 2);
         //
         game.updateBoard(updatedGameBoard);
         //
         if (game.gameFinished()) {
             String winner = game.getWinner();
-            return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " " + updatedGameBoard + " " + winner;
+            return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "
+                    + updatedGameBoard + " " + winner;
         }
 
-        return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " " + updatedGameBoard;
+        return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "
+                + updatedGameBoard;
     }
 
     /**
@@ -214,12 +213,12 @@ public class CommandHandler {
      * @param gameIdentifier -
      */
 
-    private String getGameStatus(String[] parameters){
+    private String getGameStatus(String[] parameters) {
         String gameId = parameters[0];
 
         if (games.get(gameId) == null) {
             return "ERROR: Game " + "\'" + gameId + "\' does not exist";
-        } 
+        }
         String response = "BORD " + gameId;
         for (String player : games.get(gameId).getPlayers()) {
             response += " " + player;

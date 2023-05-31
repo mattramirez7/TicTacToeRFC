@@ -12,9 +12,10 @@ public class ClientData {
 
     /**
      * TCP Constructor
+     * 
      * @param sessionId - keeps track of a session which corresponds to a client
-     * @param gameId - initial game id (optional)
-     * @param out - PrintWriter object used to send back messages during game
+     * @param gameId    - initial game id (optional)
+     * @param out       - PrintWriter object used to send back messages during game
      */
     public ClientData(int sessionId, PrintWriter out) {
         this.sessionId = sessionId;
@@ -24,8 +25,10 @@ public class ClientData {
 
     /**
      * UDP Constructor
+     * 
      * @param sessionId - keeps track of a session which corresponds to client
-     * @param portUDP - Datagram packet-specific port (unique for each UDP connection)
+     * @param portUDP   - Datagram packet-specific port (unique for each UDP
+     *                  connection)
      * @param ipAddress - client's IP address
      */
     public ClientData(int port, InetAddress ipAddress) {

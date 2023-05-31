@@ -71,14 +71,6 @@ public class TTTPServer {
         }
     }
 
-    // Example Request:
-    // HELO 1 CID1
-    // SESS SID2 CID2
-    // BORD GID1 CID1 CID2 CID2
-    //
-    // |*|*|*|
-    // |*|X|*|
-    // |*|*|*|
     private static String callCommand(String request, int sessionID) {
         String[] requestArgs = request.split("\\s+");
         String command = requestArgs[0];
@@ -88,7 +80,6 @@ public class TTTPServer {
         if (COMMANDS.contains(command)) {
             return ch.handleRequest(command, args);
         } else {
-            System.out.println("Invalid command: " + command);
             return "Error";
         }
     }
@@ -112,10 +103,10 @@ public class TTTPServer {
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 String line = "";
                 while (true) {
-                    if ((line = in.readLine()) == null || line.equals("\r\n")|| line.equals("")) {
+                    if ((line = in.readLine()) == null || line.equals("\r\n") || line.equals("")) {
                         continue;
                     }
-                    System.out.printf("Client " + this.id + "sent: %s\n", line);
+                    System.out.printf("Client " + this.id + "sent: %s\n ", line);
                     String response = callCommand(line, this.id);
 
                     String[] responseArgs = response.split("\\s+");
@@ -153,7 +144,7 @@ public class TTTPServer {
                         startGame = true;
                     }
                     out.println(response + "\r\n");
-                    System.out.println("Sending response to user: " + response);
+                    System.out.println("Sending response: " + response);
 
                     if (startGame) {
                         String gameId = "";
@@ -166,7 +157,6 @@ public class TTTPServer {
                         List<String> players = games.get(gameId).getPlayers();
 
                         int remainingStars = gameBoard.length() - gameBoard.replace("*", "").length();
-                        System.out.println(remainingStars);
                         String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
 
                         for (String player : games.get(gameId).getPlayers()) {
@@ -212,7 +202,6 @@ public class TTTPServer {
                     System.out.println("Reply port: " + receivePacket.getPort());
                     System.out.println();
 
-
                     InetAddress clientIpAddress = receivePacket.getAddress();
                     int clientPort = receivePacket.getPort();
                     this.port = clientPort;
@@ -222,7 +211,6 @@ public class TTTPServer {
 
                     // Convert received data to a string
                     String receivedMessage = new String(receiveData, 0, length);
-
 
                     if (receivedMessage == null | receivedMessage.equals("\r\n") | receivedMessage.equals("")) {
                         continue;
@@ -239,9 +227,9 @@ public class TTTPServer {
                     String[] args = Arrays.copyOfRange(responseArgs, 1, responseArgs.length);
                     boolean startGame = false;
 
-
-                    // DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientIpAddress,
-                    //         clientPort);
+                    // DatagramPacket responsePacket = new DatagramPacket(responseData,
+                    // responseData.length, clientIpAddress,
+                    // clientPort);
                     // serverSocket.send(responsePacket);
 
                     if (command.equals("SESS")) {
@@ -270,12 +258,14 @@ public class TTTPServer {
                         String nextPlayerMove = args[3];
                         games.get(gameId).updateBoard(gameBoard);
                         int port = clients.get(nextPlayerMove).getPortUDP();
-                        DatagramPacket boardResponsePacket = new DatagramPacket(responseData, responseData.length, clientIpAddress, port);
+                        DatagramPacket boardResponsePacket = new DatagramPacket(responseData, responseData.length,
+                                clientIpAddress, port);
                         serverSocket.send(boardResponsePacket);
                         startGame = true;
                     }
 
-                    DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length, clientIpAddress, clientPort);
+                    DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length,
+                            clientIpAddress, clientPort);
                     serverSocket.send(generalResponsePacket);
 
                     if (startGame) {
@@ -297,12 +287,13 @@ public class TTTPServer {
                             InetAddress playerIpAddress = curPlayer.getIpAddress();
                             int playerPort = curPlayer.getPortUDP();
                             String data = "YMRV " + gameId + " " + currentPlayer;
-        
-                            DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(), data.getBytes().length, playerIpAddress, playerPort);
+
+                            DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(),
+                                    data.getBytes().length, playerIpAddress, playerPort);
                             serverSocket.send(gameStartResponse);
                             System.out.println("Response sent: " + data);
                         }
-                    } 
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

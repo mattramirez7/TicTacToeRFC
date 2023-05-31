@@ -1,9 +1,5 @@
 package Java;
 
-import java.util.*;
-import java.io.*;
-import java.net.*;
-
 public class ClientHandler {
     private String sessionID;
     private String clientIdentifier;
@@ -11,7 +7,7 @@ public class ClientHandler {
     private Boolean terminated;
     private String board;
 
-    public ClientHandler (String sessionID, String clientIdentifier, String symbol, Boolean terminated, String board) {
+    public ClientHandler(String sessionID, String clientIdentifier, String symbol, Boolean terminated, String board) {
         this.sessionID = sessionID;
         this.clientIdentifier = clientIdentifier;
         this.symbol = symbol;
