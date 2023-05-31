@@ -68,6 +68,8 @@ public class Client {
                     } else {
                         System.out.println("No one was declared a winner, and the game has been terminated. Better luck next time!");
                     }
+                } else if(message.equals("")) {
+                    //do something here to handle quit and stat
                 }
             }
 
@@ -248,9 +250,11 @@ public class Client {
     }
 
     public static String getJond(String[] response, ClientHandler newClient){
+        Scanner scanner = new Scanner(System.in);
         System.out.println("You have now joined the game: " + response[2]);
         System.out.println("Please wait while we get the game started.");
         //returns nothing because waiting for yrmv to be sent
+
         return "";
     }
 
@@ -270,6 +274,9 @@ public class Client {
             //System.out.println(newClient.getBoard());
             System.out.println("It is your turn to make a move, which space would you like to occupy?");
             String moveSpace = scanner.nextLine();
+            if(moveSpace.contains("quit")) {
+                return "QUIT " + response[1];
+            }
 
             return "MOVE " + response[1] + " " + moveSpace;
         } else {
@@ -283,6 +290,7 @@ public class Client {
             System.out.println("");
             //System.out.println(newClient.getBoard());
             System.out.println("It is not your move, please wait for player: " + response[2] + " to go.");
+
             return "";
         }
     }
