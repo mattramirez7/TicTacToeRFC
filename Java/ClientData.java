@@ -1,7 +1,9 @@
 package Java;
 
 import java.io.PrintWriter;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 
 public class ClientData {
     private int sessionId = -999;
@@ -9,6 +11,7 @@ public class ClientData {
     private PrintWriter out;
     private int portUDP = -999;
     private InetAddress ipAddress;
+    private DatagramSocket udpSocket;
 
     /**
      * TCP Constructor
@@ -31,9 +34,10 @@ public class ClientData {
      *                  connection)
      * @param ipAddress - client's IP address
      */
-    public ClientData(int port, InetAddress ipAddress) {
+    public ClientData(int port, InetAddress ipAddress, DatagramSocket udpSocket) {
         this.portUDP = port;
         this.ipAddress = ipAddress;
+        this.udpSocket = udpSocket;
     }
 
     // Getters and setters (optional) for sessionId and gameId
@@ -66,5 +70,9 @@ public class ClientData {
 
     public InetAddress getIpAddress() {
         return this.ipAddress;
+    }
+
+    public DatagramSocket getUDPSocket() {
+        return this.udpSocket;
     }
 }

@@ -187,14 +187,14 @@ public class Client {
             newClient.setLastCall("CREA");
             return "CREA " + newClient.getClientID();
         } else if (beginGame.contains("join")) {
-            System.out.print("Please enter the Game ID you'd like to join.");
+            System.out.print("Please enter the Game ID you'd like to join: ");
             String gameID = scanner.nextLine();
             newClient.setLastCall("JOIN");
             return "JOIN " + gameID;
         } else if (beginGame.contains("list")) {
             // add curr and all
             System.out.print(
-                    "Would you like to view all games currently \"open\", all games \"currently\" open and in-play, or \"all\" games including those that have concluded?");
+                    "Would you like to view all games currently \"open\", all games \"currently\" open and in-play, or \"all\" games including those that have concluded? ");
             String listType = scanner.nextLine();
 
             if (listType.contains("currently")) {
@@ -218,7 +218,7 @@ public class Client {
         if(newClient.getLastCall().contains("STAT")) {
             Scanner scanner = new Scanner(System.in);
             if(response.length == 3) {
-                System.out.println("This game: " + response[1] + " only has one player in it. Would you like to \"join\"?");
+                System.out.println("This game: " + response[1] + " only has one player in it. Would you like to \"join\"? ");
                 String joinGame = scanner.nextLine();
 
                 if(joinGame.contains("join")) {
@@ -226,14 +226,14 @@ public class Client {
                     return "JOIN " + response[1];
                 } else {
                     //check if this length is right
-                    getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+                    return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
                 }
             } else if(response.length == 7) {
-                System.out.println("This game has finished. The winner was: " + response[7]);
-                getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+                System.out.println("This game has finished. The winner was: " + response[6]);
+                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
             } else if(response.length > 3) {
                 System.out.println("This game is currently in the middle of play.");
-                getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
             }
         }
         else if (response.length == 3) { // If there is not enough players to be playing this game, the command will
@@ -252,7 +252,7 @@ public class Client {
             System.out.println("The final game board: " + response[5]);
 
             Scanner scanner = new Scanner(System.in);
-            System.out.println("Would you like to \"end\" the session or start a \"new\" game?");
+            System.out.println("Would you like to \"end\" the session or start a \"new\" game? ");
             String nextStep = scanner.nextLine();
             if(nextStep.contains("end")) {
                 newClient.setTerminated(true);
@@ -265,7 +265,6 @@ public class Client {
             }
 
         }
-
         return "";
     }
 
@@ -277,18 +276,18 @@ public class Client {
 
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Would you like to view the \"status\" of a game, or \"join\" a game?");
+        System.out.print("Would you like to view the \"status\" of a game, or \"join\" a game? ");
         String gameStat = scanner.nextLine();
 
         String gameID = "";
         if(gameStat.contains("status")) {
-            System.out.print("Which game id would you like to view?");
+            System.out.print("Which game id would you like to view? ");
             gameID = scanner.nextLine();
             newClient.setLastCall("STAT " + gameID);
 
             return "STAT " + gameID;
         } else if (gameStat.contains("join")){
-            System.out.print("Which game id would you like to join?");
+            System.out.print("Which game id would you like to join? ");
             gameID = scanner.nextLine();
         }
         newClient.setLastCall("JOIN " + gameID);
@@ -325,7 +324,7 @@ public class Client {
                 }
             }
             System.out.println("");
-            System.out.println("It is your turn to make a move, which space would you like to occupy?");
+            System.out.println("It is your turn to make a move, which space would you like to occupy? ");
             String moveSpace = scanner.nextLine();
 
             if (moveSpace.contains("quit")) {

@@ -135,7 +135,9 @@ public class CommandHandler {
 
         for (String gameId : games.keySet()) {
             if (body.equals("CURR")) {
-                if (games.get(gameId).getBoard().endsWith("|")) {
+                String boardStatus = games.get(gameId).getBoardStatus();
+                String[] args = boardStatus.split("\\s+");
+                if (args.length == 3 || args.length == 5) {
                     response += " " + gameId;
                 }
             } else if (body.equals("ALL")) {
@@ -219,11 +221,8 @@ public class CommandHandler {
         if (games.get(gameId) == null) {
             return "ERROR: Game " + "\'" + gameId + "\' does not exist";
         }
-        String response = "BORD " + gameId;
-        for (String player : games.get(gameId).getPlayers()) {
-            response += " " + player;
-        }
-        return response;
+       
+        return games.get(gameId).getBoardStatus();
     }
 
 }

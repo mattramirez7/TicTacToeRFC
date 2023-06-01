@@ -9,6 +9,8 @@ public class Game {
     private String stringBoard;
     private List<String> players;
     private String winnerMarker;
+    private String boardStatus;
+
 
     public Game() {
         this.boardSize = 3;
@@ -16,6 +18,7 @@ public class Game {
         this.stringBoard = "|*|*|*|*|*|*|*|*|*|";
         updateBoardMatrix();
         this.players = new ArrayList<String>();
+        this.boardStatus = "BORD";
     }
 
     public Game(int boardSize) {
@@ -38,6 +41,14 @@ public class Game {
     public void updateBoard(String board) {
         this.stringBoard = board;
         updateBoardMatrix();
+    }
+
+    public void setBoardStatus(String boardStatus) {
+        this.boardStatus = boardStatus;
+    }
+
+    public String getBoardStatus() {
+        return boardStatus;
     }
 
     public String parseArrayToString(String[][] board) {
@@ -66,7 +77,6 @@ public class Game {
         if (!checkWinningCondition()) {
             for (String[] row : this.gameBoard) {
                 for (int i = 0; i < row.length; i++) {
-                    System.out.print(row[i]);
                     if (row[i].equals("*")) {
                         return false;
                     }
@@ -75,6 +85,7 @@ public class Game {
         }
         return true;
     }
+
 
     public String getWinner() {
         if (!gameFinished()) {
