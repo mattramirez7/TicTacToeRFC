@@ -261,7 +261,7 @@ public class Client {
             } else {
                 newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
                 newClient.setSymbol("");
-                getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
             }
 
         }

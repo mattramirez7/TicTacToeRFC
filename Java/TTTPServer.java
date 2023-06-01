@@ -141,7 +141,14 @@ public class TTTPServer {
                         String gameBoard = args[4];
                         games.get(gameId).updateBoard(gameBoard);
                         clients.get(nextPlayerMove).getOut().println(response);
-                        startGame = true;
+                        if (args.length == 6) {
+                            String currentPlayerMove = args[1];
+                            clients.get(currentPlayerMove).setGameId(null);
+                            clients.get(nextPlayerMove).setGameId(null);
+                        } else {
+                            startGame = true;
+                        }
+
                     }
                     out.println(response + "\r\n");
                     System.out.println("Sending response: " + response);
