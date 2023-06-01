@@ -6,13 +6,15 @@ public class ClientHandler {
     private String symbol;
     private Boolean terminated;
     private String board;
+    private String lastCall;
 
-    public ClientHandler(String sessionID, String clientIdentifier, String symbol, Boolean terminated, String board) {
+    public ClientHandler(String sessionID, String clientIdentifier, String symbol, Boolean terminated, String board, String lastCall) {
         this.sessionID = sessionID;
         this.clientIdentifier = clientIdentifier;
         this.symbol = symbol;
         this.terminated = terminated;
         this.board = board;
+        this.lastCall = lastCall;
     }
 
     public String getSessionID() {
@@ -35,6 +37,10 @@ public class ClientHandler {
         return board;
     }
 
+    public String getLastCall() {
+        return lastCall;
+    }
+
     public void setSessionID(String sessID) {
         sessionID = sessID;
     }
@@ -53,5 +59,9 @@ public class ClientHandler {
 
     public void setBoard(String boardSent) {
         board = boardSent;
+    }
+
+    public void setLastCall(String last) {
+        lastCall = last;
     }
 }
