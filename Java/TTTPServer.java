@@ -120,84 +120,13 @@ public class TTTPServer {
                         ClientData newClient = new ClientData(sessionId, out);
                         clients.put(clientId, newClient);
                     }
+                    startGame = updateData(response);
 
-                    if (command.equals("JOND")) {
-                        String clientId = args[0];
-                        String gameId = args[1];
-                        if (games.keySet().contains(gameId)) {
-                            Game game = games.get(gameId);
-                            game.addPlayer(clientId);
-                            // String player1 = game.getPlayers().get(0);
-                            // String player2 = game.getPlayers().get(1);
-                            // String board = game.getBoard();
-                            // game.setBoardStatus("BORD " + player1 + " " + player2 + " " + player1 + " " + board);
-                            startGame = true;
-                        } else {
-                            Game newGame = new Game();
-                            newGame.addPlayer(clientId);
-                            games.put(gameId, newGame);
-                            newGame.setBoardStatus("BORD " + gameId + " " + clientId);
-                        }
-                        clients.get(clientId).setGameId(gameId);
-                    }
-
-                    if (command.equals("BORD") && args.length > 4) {
-                        String gameId = args[0];
-                        String nextPlayerMove = args[3];
-                        String gameBoard = args[4];
-                        games.get(gameId).setBoardStatus(response);
-                        games.get(gameId).updateBoard(gameBoard);
-                        ClientData nextPlayer = clients.get(nextPlayerMove);
-                        if (nextPlayer.getPortUDP() != -999) {
-                            DatagramPacket gameUpdateResponse = new DatagramPacket(response.getBytes(),
-                                    response.getBytes().length, nextPlayer.getIpAddress(), nextPlayer.getPortUDP());
-                                nextPlayer.getUDPSocket().send(gameUpdateResponse);
-                        } else {
-                            clients.get(nextPlayerMove).getOut().println(response);
-                        }
-                        
-                        if (args.length == 6) {
-                            String currentPlayerMove = args[1];
-                            clients.get(currentPlayerMove).setGameId(null);
-                            clients.get(nextPlayerMove).setGameId(null);
-                        } else {
-                            startGame = true;
-                        }
-
-                    }
                     out.println(response + "\r\n");
                     System.out.println("Sending response: " + response);
 
                     if (startGame) {
-                        String gameId = "";
-                        if (args.length > 4) {
-                            gameId = args[0];
-                        } else {
-                            gameId = args[1];
-                        }
-                        String gameBoard = games.get(gameId).getBoard();
-                        List<String> players = games.get(gameId).getPlayers();
-                        
-
-                        int remainingStars = gameBoard.length() - gameBoard.replace("*", "").length();
-                        String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
-
-                        for (String player : games.get(gameId).getPlayers()) {
-                            ClientData curPlayer = clients.get(player);
-                            InetAddress playerIpAddress = curPlayer.getIpAddress();
-                            int playerPort = curPlayer.getPortUDP();
-                            String data = "YMRV " + gameId + " " + currentPlayer;
-
-                            if (curPlayer.getPortUDP() != -999) {
-                                DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(),
-                                    data.getBytes().length, playerIpAddress, playerPort);
-                                curPlayer.getUDPSocket().send(gameStartResponse);
-                            } else {
-                                curPlayer.getOut().println(data);
-                            }
-                            
-                            System.out.println("Response sent: " + data);
-                        }
+                        sendYRMVUpdates(args);
                     }
                 }
             } catch (IOException e) {
@@ -264,83 +193,108 @@ public class TTTPServer {
                         ClientData newClient = new ClientData(clientPort, clientIpAddress, serverSocket);
                         clients.put(clientId, newClient);
                     }
-
-                    if (command.equals("JOND")) {
-                        clientId = args[0];
-                        String gameId = args[1];
-                        if (games.keySet().contains(gameId)) {
-                            games.get(gameId).addPlayer(clientId);
-                            startGame = true;
-                        } else {
-                            Game newGame = new Game();
-                            newGame.addPlayer(clientId);
-                            games.put(gameId, newGame);
-                            newGame.setBoardStatus("BORD " + gameId + " " + clientId);
-                        }
-                        clients.get(clientId).setGameId(gameId);
-                    }
-                    if (command.equals("BORD") && args.length > 4) {
-                        String gameId = args[0];
-                        String gameBoard = args[4];
-                        String nextPlayerMove = args[3];
-                        games.get(gameId).setBoardStatus(response);
-                        games.get(gameId).updateBoard(gameBoard);
-                        ClientData nextPlayer = clients.get(nextPlayerMove);
-                        if (nextPlayer.getPortUDP() != -999) {
-                            DatagramPacket gameUpdateResponse = new DatagramPacket(response.getBytes(),
-                                    response.getBytes().length, nextPlayer.getIpAddress(), nextPlayer.getPortUDP());
-                                nextPlayer.getUDPSocket().send(gameUpdateResponse);
-                        } else {
-                            clients.get(nextPlayerMove).getOut().println(response);
-                        }
-                        
-                        if (args.length == 6) {
-                            String currentPlayerMove = args[1];
-                            clients.get(currentPlayerMove).setGameId(null);
-                            clients.get(nextPlayerMove).setGameId(null);
-                        } else {
-                            startGame = true;
-                        }
-                    }
+                    startGame = updateData(response);
 
                     DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length,
                             clientIpAddress, clientPort);
                     serverSocket.send(generalResponsePacket);
 
                     if (startGame) {
-                        String gameId = "";
-                        if (args.length > 4) {
-                            gameId = args[0];
-                        } else {
-                            gameId = args[1];
-                        }
-                        String gameBoard = games.get(gameId).getBoard();
-                        List<String> players = games.get(gameId).getPlayers();
-
-                        int remainingStars = gameBoard.length() - gameBoard.replace("*", "").length();
-                        String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
-
-                        for (String player : games.get(gameId).getPlayers()) {
-                            ClientData curPlayer = clients.get(player);
-                            InetAddress playerIpAddress = curPlayer.getIpAddress();
-                            int playerPort = curPlayer.getPortUDP();
-                            String data = "YMRV " + gameId + " " + currentPlayer;
-
-                            if (curPlayer.getPortUDP() != -999) {
-                                DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(),
-                                    data.getBytes().length, playerIpAddress, playerPort);
-                                serverSocket.send(gameStartResponse);
-                            } else {
-                                curPlayer.getOut().println(data);
-                            }
-                            
-                            System.out.println("Response sent: " + data);
-                        }
+                        sendYRMVUpdates(args);
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private static boolean updateData(String response) {
+        try {
+            String[] responseArgs = response.split("\\s+");
+            String command = responseArgs[0];
+            String[] args = Arrays.copyOfRange(responseArgs, 1, responseArgs.length);
+            Boolean startGame = false;
+
+            if (command.equals("JOND")) {
+                String clientId = args[0];
+                String gameId = args[1];
+                if (games.keySet().contains(gameId)) {
+                    Game game = games.get(gameId);
+                    game.addPlayer(clientId);
+                    startGame = true;
+                } else {
+                    Game newGame = new Game();
+                    newGame.addPlayer(clientId);
+                    games.put(gameId, newGame);
+                    newGame.setBoardStatus("BORD " + gameId + " " + clientId);
+                }
+                clients.get(clientId).setGameId(gameId);
+            } else if (command.equals("BORD") && args.length > 4) {
+                String gameId = args[0];
+                String nextPlayerMove = args[3];
+                String gameBoard = args[4];
+                games.get(gameId).setBoardStatus(response);
+                games.get(gameId).updateBoard(gameBoard);
+                ClientData nextPlayer = clients.get(nextPlayerMove);
+                if (nextPlayer.getPortUDP() != -999) {
+                    DatagramPacket gameUpdateResponse = new DatagramPacket(response.getBytes(),
+                            response.getBytes().length, nextPlayer.getIpAddress(), nextPlayer.getPortUDP());
+                    nextPlayer.getUDPSocket().send(gameUpdateResponse);
+                } else {
+                    clients.get(nextPlayerMove).getOut().println(response);
+                }
+
+                if (args.length == 6) {
+                    String currentPlayerMove = args[1];
+                    clients.get(currentPlayerMove).setGameId(null);
+                    clients.get(nextPlayerMove).setGameId(null);
+                } else {
+                    startGame = true;
+                }
+
+            }
+            return startGame;
+        } catch (Exception err) {
+            err.printStackTrace();
+            return false;
+        }
+
+    }
+
+    private static void sendYRMVUpdates(String[] args) {
+        try {
+            String gameId = "";
+            if (args.length > 4) {
+                gameId = args[0];
+            } else {
+                gameId = args[1];
+            }
+            String gameBoard = games.get(gameId).getBoard();
+            List<String> players = games.get(gameId).getPlayers();
+
+            int remainingStars = gameBoard.length() - gameBoard.replace("*", "").length();
+            String currentPlayer = remainingStars % 2 == 0 ? players.get(1) : players.get(0);
+
+            for (String player : games.get(gameId).getPlayers()) {
+                ClientData curPlayer = clients.get(player);
+                InetAddress playerIpAddress = curPlayer.getIpAddress();
+                int playerPort = curPlayer.getPortUDP();
+                String data = "YMRV " + gameId + " " + currentPlayer;
+
+                if (curPlayer.getPortUDP() != -999) {
+                    DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(),
+                            data.getBytes().length, playerIpAddress, playerPort);
+                    curPlayer.getUDPSocket().send(gameStartResponse);
+                } else {
+                    curPlayer.getOut().println(data);
+                }
+
+                System.out.println("Response sent: " + data);
+            }
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+
     }
 }
