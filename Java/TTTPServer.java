@@ -8,6 +8,7 @@ import java.util.concurrent.*;
 public class TTTPServer {
     private static HashMap<String, Game> games;
     private static HashMap<String, ClientData> clients;
+    private static HashMap<Integer, Integer> sessionVersions = new HashMap<Integer, Integer>();
     private static final List<String> COMMANDS = new ArrayList<String>();
 
     static {
@@ -58,14 +59,12 @@ public class TTTPServer {
             udpSocket = new DatagramSocket(port);
             System.out.println("UDP server started and listening on port " + port);
 
-            // while (true) {
             byte[] buffer = new byte[256];
             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
 
             UDPhandler udpClient = new UDPhandler(udpSocket, requestPacket);
             new Thread(udpClient).start();
 
-            // }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -78,6 +77,7 @@ public class TTTPServer {
 
         CommandHandler ch = new CommandHandler(clients, sessionID, games);
         if (COMMANDS.contains(command)) {
+            sessionVersions.put(sessionID, ch.getVersion());
             return ch.handleRequest(command, args);
         } else {
             return "Error";
@@ -108,6 +108,7 @@ public class TTTPServer {
                     }
                     System.out.printf("TCP Client " + this.id + "sent: %s\n ", line);
                     String response = callCommand(line, this.id);
+                    
 
                     String[] responseArgs = response.split("\\s+");
                     String command = responseArgs[0];
@@ -124,16 +125,43 @@ public class TTTPServer {
                     if (command.equals("JOND")) {
                         String clientId = args[0];
                         String gameId = args[1];
+
+                        clients.get(clientId).getSessionId();
+                        List<String> players = new ArrayList<String>();
+                        if (games.size() > 0 & games.keySet().contains(clientId)) {
+                            players = games.get(clientId).getPlayers();
+                        }
+
+
+                        int[] playerVersions = new int[players.size()];
+                        int i = 0;
+
+                        for (String player : players) {
+                            int curPlayerSessionId = clients.get(player).getSessionId();
+                            int curPlayersVersion = sessionVersions.get(curPlayerSessionId);
+                            playerVersions[i] = curPlayersVersion;
+                            i++;
+                        }
+
                         if (games.keySet().contains(gameId)) {
                             Game game = games.get(gameId);
+                            if (playerVersions.length > 0) {
+                                int oldestVersion = playerVersions[0]; // Assume the first element is the minimum
+        
+                                for (int j = 1; j < playerVersions.length; j++) {
+                                    if (playerVersions[j] < oldestVersion) {
+                                        oldestVersion = playerVersions[j]; // Update the minimum if a smaller value is found
+                                    }
+                                }
+                                game.setVersion(oldestVersion);
+                            }
+                            
                             game.addPlayer(clientId);
-                            // String player1 = game.getPlayers().get(0);
-                            // String player2 = game.getPlayers().get(1);
-                            // String board = game.getBoard();
-                            // game.setBoardStatus("BORD " + player1 + " " + player2 + " " + player1 + " " + board);
                             startGame = true;
                         } else {
                             Game newGame = new Game();
+                            int sessionId = clients.get(clientId).getSessionId();
+                            newGame.setVersion(sessionVersions.get(sessionId));
                             newGame.addPlayer(clientId);
                             games.put(gameId, newGame);
                             newGame.setBoardStatus("BORD " + gameId + " " + clientId);

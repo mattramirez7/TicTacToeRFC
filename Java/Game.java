@@ -10,6 +10,7 @@ public class Game {
     private List<String> players;
     private String winnerMarker;
     private String boardStatus;
+    private int gameVersion;
 
 
     public Game() {
@@ -36,6 +37,14 @@ public class Game {
 
     public String getBoard() {
         return parseArrayToString(gameBoard);
+    }
+
+    public int getVersion() {
+        return this.gameVersion;
+    }
+
+    public void setVersion(int version) {
+        this.gameVersion = version;
     }
 
     public void updateBoard(String board) {

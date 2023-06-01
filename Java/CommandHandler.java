@@ -8,6 +8,7 @@ public class CommandHandler {
     private HashMap<String, ClientData> clientList;
     private int currentSessionId;
     private HashMap<String, Game> games;
+    private int version;
 
     public CommandHandler(HashMap<String, ClientData> clientList, int sessionID, HashMap<String, Game> games) {
         this.clientList = clientList;
@@ -34,12 +35,14 @@ public class CommandHandler {
                 break;
             case ("STAT"):
                 return getGameStatus(parameters);
-            // case ("SHOW"):
-            // return prettyPrintBoard(parameters);
             default:
                 break;
         }
         return "";
+    }
+
+    public int getVersion() {
+        return this.version;
     }
 
     /**
@@ -74,7 +77,7 @@ public class CommandHandler {
         if (parameters.length < 2) {
             return "ERROR: Invalid Parameters";
         }
-        String version = parameters[0];
+        this.version = Integer.parseInt(parameters[0]);
         String clientId = parameters[1];
 
         for (String client : clientList.keySet()) {
@@ -86,7 +89,6 @@ public class CommandHandler {
             return "ERROR: Identifier \'" + clientId + "\' is unavailable";
         }
         return "SESS " + currentSessionId + " " + clientId;
-
     }
 
     /**
