@@ -149,9 +149,9 @@ public class CommandHandler {
             }
         }
 
-        if (response.equals("GAMS")) {
-            response = "ERROR: No games available to join";
-        }
+        // if (response.equals("GAMS")) {
+        //     response = "ERROR: No games available to join";
+        // }
         return response;
     }
 

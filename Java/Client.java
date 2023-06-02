@@ -19,10 +19,10 @@ public class Client {
         System.out.print("Enter your Client Identifier: ");
         String clientIdentifier = scanner.nextLine();
 
-        ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|", "");
+        ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|", "", "");
 
-        System.out.print("Enter Version: ");
-        String version = scanner.nextLine();
+        // System.out.print("Enter Version: ");
+        // String version = scanner.nextLine();
 
         if (service.equalsIgnoreCase("TCP")) {
             try {
@@ -35,7 +35,9 @@ public class Client {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
                 // Send greeting message
-                out.println("HELO " + version + " " + newClient.getClientID() + "\r\n");
+                out.println("HELO " + protocolVersion + " " + newClient.getClientID() + "\r\n");
+                // long startTime = System.currentTimeMillis();
+                // long timeout = 3000;
 
                 // String acknowledgment = in.readLine();
                 // System.out.println("Received acknowledgment from the server: " +
@@ -46,7 +48,22 @@ public class Client {
                     // String awaitingServer = scanner.nextLine();
                     // if()
                     String rawResponse = in.readLine();
+                    //String noResponse = "";
+
                     if (rawResponse == null | rawResponse.equals("\r\n") | rawResponse.equals("")) {
+                        // System.out.println("It is null");
+                        // if(System.currentTimeMillis() - startTime > timeout) {
+                        //     System.out.println("No message received from Server in One Minute. Would you like to \"quit\", \"continue\", or say \"goodbye\" to the session.");
+                        //     String nextMove = scanner.nextLine();
+                        //     if(nextMove.contains("quit")) {
+                        //         noResponse = "QUIT " + newClient.getGameId();
+                        //     } else if (nextMove.contains("goodbye")) {
+                        //         noResponse = "GDBY " + newClient.getGameId();
+                        //     } else {
+                        //         startTime = System.currentTimeMillis();
+                        //         continue;
+                        //     }
+                        // } 
                         continue;
                     }
                     System.out.println("Received response from the server: " + rawResponse);
@@ -54,12 +71,26 @@ public class Client {
                     String[] response = rawResponse.split(" ");
                     System.out.println("parsed response from the server: " + Arrays.toString(response));
                     String message = handleResponse(response, newClient);
+
+                    // if(!noResponse.equals("")) {
+                    //     message = noResponse;
+                    // }
+
                     // System.out.println("parsed response from the server: " + response);
                     if (!newClient.getTerminated() && !message.equals("")) {
                         System.out.println("Sending message to server: " + message);
                         out.println(message + "\r\n");
+                        //startTime = System.currentTimeMillis();
                         // out.println(message);
-                    } else if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
+                        if(newClient.getLastCall().contains("QUIT")) {
+                            newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
+                            newClient.setSymbol("");
+                            newClient.setGameId("");
+                            out.println(getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient));
+                            //startTime = System.currentTimeMillis();
+                        }
+                    } 
+                    if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
                         if (response.length == 4) {
                             if (response[2].equals(newClient.getClientID())) {
                                 System.out.println(
@@ -92,7 +123,7 @@ public class Client {
                 InetAddress address = InetAddress.getByName(host);
                 DatagramSocket socket = new DatagramSocket();
 
-                String greetingMessage = "HELO " + version + " " + newClient.getClientID() + "\r\n";
+                String greetingMessage = "HELO " + protocolVersion + " " + newClient.getClientID() + "\r\n";
                 byte[] sendData = greetingMessage.getBytes();
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                 socket.send(sendPacket);
@@ -118,7 +149,17 @@ public class Client {
                         sendData = message.getBytes();
                         sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                         socket.send(sendPacket);
-                    } else if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
+                        if(newClient.getLastCall().contains("QUIT")) {
+                            newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
+                            newClient.setSymbol("");
+                            newClient.setGameId("");
+                            message = (getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient)) + "\r\n";
+                            sendData = message.getBytes();
+                            sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
+                            socket.send(sendPacket);
+                        }
+                    } 
+                    if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
                         if (responseParts.length == 4) {
                             if (responseParts[2].equals(newClient.getClientID())) {
                                 System.out.println(
@@ -161,7 +202,10 @@ public class Client {
         } else if (action.equals("JOND")) { // emily
             request = getJond(response, newClient);
         } else if (action.equals("TERM")) { // audrey
-            newClient.setTerminated(true);
+            //newClient.setTerminated(true);
+            if(response.length == 3) {
+                System.out.println("This game has tied and the session will now shut.");
+            }
             request = "";
             // request = "TERM";
         } else if (action.equals("YMRV")) { // emily
@@ -257,10 +301,11 @@ public class Client {
             if(nextStep.contains("end")) {
                 newClient.setTerminated(true);
                 newClient.setLastCall("DONE");
-                //return "GDBY " + response[1];
+                return "GDBY " + response[1];
             } else {
                 newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
                 newClient.setSymbol("");
+                newClient.setGameId("");
                 return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
             }
 
@@ -272,6 +317,10 @@ public class Client {
         System.out.println("Here is the list of games:");
         for (int i = 1; i < response.length; i++) {
             System.out.println(response[i]);
+        }
+        if(response.length == 1) {
+            System.out.println("There is no open games.");
+            return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
         }
 
         Scanner scanner = new Scanner(System.in);
@@ -303,9 +352,10 @@ public class Client {
     }
 
     public static String getJond(String[] response, ClientHandler newClient) {
-        Scanner scanner = new Scanner(System.in);
+        //Scanner scanner = new Scanner(System.in);
+        newClient.setGameId(response[2]);
         System.out.println("You have now joined the game: " + response[2]);
-        System.out.println("Please wait while we get the game started.");
+        System.out.println("Please wait while we get the game started. If at any point once the game starts, you'd like to quit. Please enter \"quit\". If you'd like to leave the session with the server after the game starts altogether, please enter \"goodbye\".");
         // returns nothing because waiting for yrmv to be sent
 
         return "";
@@ -330,6 +380,8 @@ public class Client {
             if (moveSpace.contains("quit")) {
                 newClient.setLastCall("QUIT " + response[1]);
                 return "QUIT " + response[1];
+            } else if (moveSpace.contains("goodbye")) {
+                return "GDBY " + newClient.getGameId();
             }
             newClient.setLastCall("MOVE");
 
