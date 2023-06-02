@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+
 public class TTTPServer {
     private static HashMap<String, Game> games;
     private static HashMap<String, ClientData> clients;
@@ -74,11 +75,13 @@ public class TTTPServer {
         String[] requestArgs = request.split("\\s+");
         String command = requestArgs[0];
         String[] args = Arrays.copyOfRange(requestArgs, 1, requestArgs.length);
-
         CommandHandler ch = new CommandHandler(clients, sessionID, games);
         if (COMMANDS.contains(command)) {
-            sessionVersions.put(sessionID, ch.getVersion());
-            return ch.handleRequest(command, args);
+            String output = ch.handleRequest(command, args);
+            if (command.equals("HELO")) {
+                sessionVersions.put(sessionID, ch.getVersion());
+            }
+            return output;
         } else {
             return "Error";
         }
@@ -128,23 +131,28 @@ public class TTTPServer {
 
                         clients.get(clientId).getSessionId();
                         List<String> players = new ArrayList<String>();
-                        if (games.size() > 0 & games.keySet().contains(clientId)) {
-                            players = games.get(clientId).getPlayers();
-                        }
-
-
-                        int[] playerVersions = new int[players.size()];
-                        int i = 0;
-
-                        for (String player : players) {
-                            int curPlayerSessionId = clients.get(player).getSessionId();
-                            int curPlayersVersion = sessionVersions.get(curPlayerSessionId);
-                            playerVersions[i] = curPlayersVersion;
-                            i++;
-                        }
+  
 
                         if (games.keySet().contains(gameId)) {
                             Game game = games.get(gameId);
+                            game.addPlayer(clientId);
+
+                            System.out.println("Second Conditonal Value: " + games.values().stream().anyMatch(gamez -> game.getPlayers().contains(clientId)));
+                            if (games.size() > 0 && games.values().stream().anyMatch(gamez -> game.getPlayers().contains(clientId))) {
+                                players.addAll(games.get(gameId).getPlayers());
+                            }
+    
+    
+                            int[] playerVersions = new int[players.size()];
+                            int i = 0;
+    
+                            for (String player : players) {
+                                int curPlayerSessionId = clients.get(player).getSessionId();
+                                int curPlayersVersion = sessionVersions.get(curPlayerSessionId);
+                                playerVersions[i] = curPlayersVersion;
+                                i++;
+                            }
+
                             if (playerVersions.length > 0) {
                                 int oldestVersion = playerVersions[0]; // Assume the first element is the minimum
         
@@ -154,15 +162,17 @@ public class TTTPServer {
                                     }
                                 }
                                 game.setVersion(oldestVersion);
+                                System.out.println("Join Game Version:" + game.getVersion());
                             }
                             
-                            game.addPlayer(clientId);
+                            
                             startGame = true;
                         } else {
                             Game newGame = new Game();
                             int sessionId = clients.get(clientId).getSessionId();
                             newGame.setVersion(sessionVersions.get(sessionId));
                             newGame.addPlayer(clientId);
+                            System.out.println("Create a New Game Version " + newGame.getVersion());
                             games.put(gameId, newGame);
                             newGame.setBoardStatus("BORD " + gameId + " " + clientId);
                         }

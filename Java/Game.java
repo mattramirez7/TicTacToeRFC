@@ -3,6 +3,7 @@ package Java;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Game {
     private int boardSize;
     private String[][] gameBoard;
@@ -10,7 +11,7 @@ public class Game {
     private List<String> players;
     private String winnerMarker;
     private String boardStatus;
-    private int gameVersion;
+    private int gameVersion = 999;
 
 
     public Game() {

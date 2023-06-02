@@ -8,7 +8,7 @@ public class CommandHandler {
     private HashMap<String, ClientData> clientList;
     private int currentSessionId;
     private HashMap<String, Game> games;
-    private int version;
+    private int version = 999;
 
     public CommandHandler(HashMap<String, ClientData> clientList, int sessionID, HashMap<String, Game> games) {
         this.clientList = clientList;
@@ -78,6 +78,7 @@ public class CommandHandler {
             return "ERROR: Invalid Parameters";
         }
         this.version = Integer.parseInt(parameters[0]);
+        System.out.println("INITIAL CLIENT VERSION: " + version);
         String clientId = parameters[1];
 
         for (String client : clientList.keySet()) {
