@@ -58,29 +58,49 @@ public class TTTPServer {
             udpSocket = new DatagramSocket(port);
             System.out.println("UDP server started and listening on port " + port);
 
-            // while (true) {
             byte[] buffer = new byte[256];
             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
 
             UDPhandler udpClient = new UDPhandler(udpSocket, requestPacket);
             new Thread(udpClient).start();
-
-            // }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static String callCommand(String request, int sessionID) {
+    private static Output callCommand(String request, int sessionID) {
         String[] requestArgs = request.split("\\s+");
         String command = requestArgs[0];
         String[] args = Arrays.copyOfRange(requestArgs, 1, requestArgs.length);
 
         CommandHandler ch = new CommandHandler(clients, sessionID, games);
         if (COMMANDS.contains(command)) {
-            return ch.handleRequest(command, args);
+            return new Output(args, ch.handleRequest(command, args));
         } else {
-            return "Error";
+            return new Output("Error");
+        }
+    }
+
+    private static class Output {
+        private String[] args;
+        private String commandResponse;      
+        private String error;  
+
+        private Output(String[] args, String commandResponse) {
+            this.args = args;
+            this.commandResponse = commandResponse;
+        }
+        
+        private Output(String error) {
+            this.error = error;
+        }
+
+        public String[] getArgs() {
+            return args;
+        }
+
+        public String getResponse() {
+            return this.commandResponse;            
         }
     }
 
@@ -107,23 +127,26 @@ public class TTTPServer {
                         continue;
                     }
                     System.out.printf("TCP Client " + this.id + "sent: %s\n ", line);
-                    String response = callCommand(line, this.id);
+                    Output data = callCommand(line, this.id);
 
-                    String[] responseArgs = response.split("\\s+");
+                    String[] responseArgs = data.getResponse().split("\\s+");
                     String command = responseArgs[0];
                     String[] args = Arrays.copyOfRange(responseArgs, 1, responseArgs.length);
                     Boolean startGame = false;
 
                     if (command.equals("SESS")) {
-                        int sessionId = Integer.parseInt(args[0]);
-                        String clientId = args[1];
-                        ClientData newClient = new ClientData(sessionId, out);
+                        int protocolVersion = Integer.parseInt(args[0]);
+                        int sessionId = Integer.valueOf(args[1]);
+                        String[] params = data.getArgs();
+                        String clientId = params[1];
+                        ClientData newClient = new ClientData(protocolVersion, sessionId, out);
                         clients.put(clientId, newClient);
                     }
-                    startGame = updateData(response);
+                    
+                    startGame = updateData(data.getResponse());
 
-                    out.println(response + "\r\n");
-                    System.out.println("Sending response: " + response);
+                    out.println(data.getResponse() + "\r\n");
+                    System.out.println("Sending response: " + data.getResponse());
 
                     if (startGame) {
                         sendYRMVUpdates(args);
@@ -179,11 +202,11 @@ public class TTTPServer {
                     // Process the received message
                     System.out.printf("Received from UDP client %d: %s%n", clientPort, receivedMessage);
 
-                    String response = callCommand(receivedMessage, port);
+                    Output data = callCommand(receivedMessage, port);
 
                     // Send a response back to the client
-                    byte[] responseData = response.getBytes();
-                    String[] responseArgs = response.split("\\s+");
+                    byte[] responseData = data.getResponse().getBytes();
+                    String[] responseArgs = data.getResponse().split("\\s+");
                     String command = responseArgs[0];
                     String[] args = Arrays.copyOfRange(responseArgs, 1, responseArgs.length);
                     boolean startGame = false;
@@ -193,7 +216,7 @@ public class TTTPServer {
                         ClientData newClient = new ClientData(clientPort, clientIpAddress, serverSocket);
                         clients.put(clientId, newClient);
                     }
-                    startGame = updateData(response);
+                    startGame = updateData(data.getResponse());
 
                     DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length,
                             clientIpAddress, clientPort);

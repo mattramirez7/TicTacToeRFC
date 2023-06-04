@@ -34,8 +34,6 @@ public class CommandHandler {
                 break;
             case ("STAT"):
                 return getGameStatus(parameters);
-            // case ("SHOW"):
-            // return prettyPrintBoard(parameters);
             default:
                 break;
         }
@@ -74,7 +72,7 @@ public class CommandHandler {
         if (parameters.length < 2) {
             return "ERROR: Invalid Parameters";
         }
-        String version = parameters[0];
+        String protocolVersion = parameters[0];
         String clientId = parameters[1];
 
         for (String client : clientList.keySet()) {
@@ -85,7 +83,10 @@ public class CommandHandler {
         if (clientList.keySet().contains(clientId)) {
             return "ERROR: Identifier \'" + clientId + "\' is unavailable";
         }
-        return "SESS " + currentSessionId + " " + clientId;
+        int sessionId = clientList.get(clientId).getSessionId();
+        
+
+        return "SESS " + protocolVersion + " " + sessionId;
 
     }
 

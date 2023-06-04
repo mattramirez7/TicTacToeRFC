@@ -11,7 +11,6 @@ public class Game {
     private String winnerMarker;
     private String boardStatus;
 
-
     public Game() {
         this.boardSize = 3;
         this.gameBoard = new String[3][3];

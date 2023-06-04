@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 
 public class ClientData {
     private int sessionId = -999;
+    private int protocolVersion = 0;
     private String gameId;
     private PrintWriter out;
     private int portUDP = -999;
@@ -20,8 +21,9 @@ public class ClientData {
      * @param gameId    - initial game id (optional)
      * @param out       - PrintWriter object used to send back messages during game
      */
-    public ClientData(int sessionId, PrintWriter out) {
+    public ClientData(int protocolVersion, int sessionId, PrintWriter out) {
         this.sessionId = sessionId;
+        this.protocolVersion = protocolVersion;
         this.gameId = null; // Initialize game ID as null (optional)
         this.out = out;
     }
@@ -50,6 +52,14 @@ public class ClientData {
 
     public void setSessionId(int sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public int getProtocolVersion() {
+        return this.protocolVersion;
+    }
+
+    public void setProtocolVersion(int version) {
+        this.protocolVersion = version;
     }
 
     public String getGameId() {
