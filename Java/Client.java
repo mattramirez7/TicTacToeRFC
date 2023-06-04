@@ -293,7 +293,17 @@ public class Client {
         } else if (response.length == 7) {// [gameid,clientid of X player,clientid of o player, clientid whose turn,
                                           // board symbols, clientid who won]
             System.out.println("The game has been won by " + response[6]);
-            System.out.println("The final game board: " + response[5]);
+
+            System.out.println("The final game board: ");
+            newClient.setBoard(response[5]);
+            String boardCurr = newClient.getBoard();
+            for (int i = 0; i < boardCurr.length(); i++) {
+                System.out.print(boardCurr.charAt(i));
+                if (i == 6 || i == 12) {
+                    System.out.print("\n|");
+                }
+            }
+            System.out.println("");
 
             Scanner scanner = new Scanner(System.in);
             System.out.println("Would you like to \"end\" the session or start a \"new\" game? ");
@@ -364,15 +374,16 @@ public class Client {
     public static String getYrmv(String[] response, ClientHandler newClient) {
         Scanner scanner = new Scanner(System.in);
 
+        String boardCurr = newClient.getBoard();
+        for (int i = 0; i < boardCurr.length(); i++) {
+            System.out.print(boardCurr.charAt(i));
+            if (i == 6 || i == 12) {
+                System.out.print("\n|");
+            }
+        }
+
         // your move, game id, client whose turn it is id
         if (response[2].equals(newClient.getClientID())) {
-            String boardCurr = newClient.getBoard();
-            for (int i = 0; i < boardCurr.length(); i++) {
-                System.out.print(boardCurr.charAt(i));
-                if (i == 6 || i == 12) {
-                    System.out.print("\n|");
-                }
-            }
             System.out.println("");
             System.out.println("It is your turn to make a move, which space would you like to occupy? ");
             String moveSpace = scanner.nextLine();
@@ -381,19 +392,14 @@ public class Client {
                 newClient.setLastCall("QUIT " + response[1]);
                 return "QUIT " + response[1];
             } else if (moveSpace.contains("goodbye")) {
+                newClient.setLastCall("DONE " + response[1]);
+                newClient.setTerminated(true);
                 return "GDBY " + newClient.getGameId();
             }
             newClient.setLastCall("MOVE");
 
             return "MOVE " + response[1] + " " + moveSpace;
         } else {
-            String boardCurr = newClient.getBoard();
-            for (int i = 0; i < boardCurr.length(); i++) {
-                System.out.print(boardCurr.charAt(i));
-                if (i == 6 || i == 12) {
-                    System.out.print("\n|");
-                }
-            }
             System.out.println("");
             System.out.println("It is not your move, please wait for player: " + response[2] + " to go.");
 
