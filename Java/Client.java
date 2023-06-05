@@ -22,8 +22,9 @@ public class Client {
 
         ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|", "", "");
 
-        System.out.print("Enter Version: ");
-        String version = scanner.nextLine();
+        // For version control testing:
+        // System.out.print("Enter Version: ");
+        // String version = scanner.nextLine();
 
         if (service.equalsIgnoreCase("TCP")) {
             try {
@@ -36,7 +37,7 @@ public class Client {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
                 // Send greeting message
-                out.println("HELO " + version + " " + newClient.getClientID() + "\r\n");
+                out.println("HELO " + protocolVersion + " " + newClient.getClientID() + "\r\n");
 
                 // Receive acknowledgment
                 while (!newClient.getTerminated()) {
@@ -69,7 +70,7 @@ public class Client {
                 DatagramSocket socket = new DatagramSocket();
                 System.out.println("Connected to t3udp://locahost: " + port);
 
-                String greetingMessage = "HELO " + version + " " + newClient.getClientID() + "\r\n";
+                String greetingMessage = "HELO " + protocolVersion + " " + newClient.getClientID() + "\r\n";
                 byte[] sendData = greetingMessage.getBytes();
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                 socket.send(sendPacket);
