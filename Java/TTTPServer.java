@@ -40,10 +40,7 @@ public class TTTPServer {
 
         try (ServerSocket server = new ServerSocket(port)) {
             server.setReuseAddress(true);
-            System.out.println("*********");
             System.out.println("TCP server started and listening at t3tcp://localhost:" + port);
-            System.out.println("*********");
-            System.out.println();
 
             while (true) {
                 Socket tcpSocket = server.accept();
@@ -60,10 +57,7 @@ public class TTTPServer {
         DatagramSocket udpSocket = null;
         try {
             udpSocket = new DatagramSocket(port);
-            System.out.println("*********");
             System.out.println("UDP server started and listening t3udp://localhost: " + port);
-            System.out.println("*********");
-            System.out.println();
 
             byte[] buffer = new byte[256];
             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
@@ -85,7 +79,6 @@ public class TTTPServer {
             String output = ch.handleRequest(command, args);
             if (command.equals("HELO")) {
                 sessionVersions.put(sessionID, ch.getVersion());
-                System.out.print(sessionVersions);
             }
             return output;
         } else {
@@ -115,7 +108,7 @@ public class TTTPServer {
                     if ((line = in.readLine()) == null || line.equals("\r\n") || line.equals("")) {
                         continue;
                     }
-                    System.out.printf("***TCP CLIENT SAYS: " + line);
+                    System.out.println("***TCP CLIENT SAYS: " + line);
                     String response = callCommand(line, this.id);
 
                     String[] responseArgs = response.split("\\s+");
@@ -224,7 +217,7 @@ public class TTTPServer {
                     if (receivedMessage == null | receivedMessage.equals("\r\n") | receivedMessage.equals("")) {
                         continue;
                     }
-                    System.out.printf("***UDP CLIENT SAYS: " + receivedMessage);
+                    System.out.println("***UDP CLIENT SAYS: " + receivedMessage);
 
                     String response = callCommand(receivedMessage, port);
 
@@ -335,7 +328,6 @@ public class TTTPServer {
                                     }
                                 }
                                 game.setVersion(oldestVersion);
-                                System.out.println("Joined Game Version:" + game.getVersion());
                             }
                     startGame = true;
                 } else {
@@ -428,10 +420,12 @@ public class TTTPServer {
                     DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(),
                             data.getBytes().length, playerIpAddress, playerPort);
                     curPlayer.getUDPSocket().send(gameStartResponse);
+                    System.out.println("***UDP SERVER SAYS " + data);
                 } else {
                     curPlayer.getOut().println(data);
+                    System.out.println("***TCP SERVER SAYS " + data);
                 }
-                System.out.println("***SERVER SAYS " + data);
+                
             }
         } catch (Exception err) {
             err.printStackTrace();
