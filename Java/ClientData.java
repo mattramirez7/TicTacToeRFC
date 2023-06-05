@@ -3,7 +3,6 @@ package Java;
 import java.io.PrintWriter;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 
 public class ClientData {
     private int sessionId = -999;
@@ -36,10 +35,11 @@ public class ClientData {
      *                  connection)
      * @param ipAddress - client's IP address
      */
-    public ClientData(int port, InetAddress ipAddress, DatagramSocket udpSocket) {
+    public ClientData(int protocolVersion, int port, InetAddress ipAddress, DatagramSocket udpSocket) {
         this.portUDP = port;
         this.ipAddress = ipAddress;
         this.udpSocket = udpSocket;
+        this.protocolVersion = protocolVersion;
     }
 
     // Getters and setters (optional) for sessionId and gameId

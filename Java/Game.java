@@ -5,11 +5,13 @@ import java.util.List;
 
 public class Game {
     private int boardSize;
+    private int gameVersion;
     private String[][] gameBoard;
     private String stringBoard;
     private List<String> players;
     private String winnerMarker;
     private String boardStatus;
+    
 
     public Game() {
         this.boardSize = 3;
@@ -18,6 +20,7 @@ public class Game {
         updateBoardMatrix();
         this.players = new ArrayList<String>();
         this.boardStatus = "BORD";
+        this.winnerMarker = null;
     }
 
     public Game(int boardSize) {
@@ -72,6 +75,13 @@ public class Game {
         return this.players;
     }
 
+    public int getVersion() {
+        return this.gameVersion;
+    }
+
+    public void setVersion(int version) {
+        this.gameVersion = version;
+    }
     public boolean gameFinished() {
         if (!checkWinningCondition()) {
             for (String[] row : this.gameBoard) {
@@ -86,11 +96,15 @@ public class Game {
     }
 
 
-    public String getWinner() {
+    public String getWinner(String gameBoard) {
         if (!gameFinished()) {
             return null;
         }
-        return winnerMarker == "X" ? players.get(1) : players.get(0);
+        if (winnerMarker == null) {
+            return "CATS";
+        } else {
+            return winnerMarker == "X" ? players.get(1) : players.get(0);
+        }
     }
 
     private boolean checkWinningCondition() {

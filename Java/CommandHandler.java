@@ -8,19 +8,21 @@ public class CommandHandler {
     private HashMap<String, ClientData> clientList;
     private int currentSessionId;
     private HashMap<String, Game> games;
+    private int protocolVersion = 9999;
 
     public CommandHandler(HashMap<String, ClientData> clientList, int sessionID, HashMap<String, Game> games) {
         this.clientList = clientList;
         this.currentSessionId = sessionID;
         this.games = games;
+        
     }
 
     public String handleRequest(String command, String[] parameters) {
         switch (command) {
             case ("CREA"):
                 return createGame(parameters);
-            case ("GDBY"):
-                quit(command);
+            case ("GDBY"):  
+                // return quit(command);
                 break;
             case ("HELO"):
                 return createSession(parameters);
@@ -31,7 +33,7 @@ public class CommandHandler {
             case ("MOVE"):
                 return move(parameters);
             case ("QUIT"):
-                break;
+                return quit(parameters);
             case ("STAT"):
                 return getGameStatus(parameters);
             default:
@@ -62,6 +64,11 @@ public class CommandHandler {
         return "JOND " + clientId + " " + gameId;
     }
 
+    public int getVersion() {
+        return this.protocolVersion;
+    }
+
+
     /**
      * HELO
      * Client-sent message
@@ -72,7 +79,8 @@ public class CommandHandler {
         if (parameters.length < 2) {
             return "ERROR: Invalid Parameters";
         }
-        String protocolVersion = parameters[0];
+        this.protocolVersion = Integer.valueOf(parameters[0]);
+        System.out.println("INITIAL CLIENT VERSION: " + protocolVersion);
         String clientId = parameters[1];
 
         for (String client : clientList.keySet()) {
@@ -82,12 +90,9 @@ public class CommandHandler {
         }
         if (clientList.keySet().contains(clientId)) {
             return "ERROR: Identifier \'" + clientId + "\' is unavailable";
-        }
-        int sessionId = clientList.get(clientId).getSessionId();
-        
+        }        
 
-        return "SESS " + protocolVersion + " " + sessionId;
-
+        return "SESS " + protocolVersion + " " + this.currentSessionId;
     }
 
     /**
@@ -158,7 +163,7 @@ public class CommandHandler {
 
     /**
      * MOVE
-     * Storing Cleint Move
+     * Storing Client Move
      * 
      * @param moveRequest
      */
@@ -186,13 +191,14 @@ public class CommandHandler {
             return "ERROR: Invalid move! Space " + "\'" + move + "\'" + " is taken.";
         }
         String updatedGameBoard = gameBoard.substring(0, (move * 2) - 1) + marker + gameBoard.substring(move * 2);
-        //
+
         game.updateBoard(updatedGameBoard);
-        //
+
         if (game.gameFinished()) {
-            String winner = game.getWinner();
+            String winner = game.getWinner(updatedGameBoard);
             return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "
-                    + updatedGameBoard + " " + winner;
+                + updatedGameBoard + " " + winner;
+            
         }
 
         return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "
@@ -200,20 +206,31 @@ public class CommandHandler {
     }
 
     /**
-     * QUIT (GDBY)
+     * QUIT 
      * Client-sent message
      * 
-     * @param gameIdentifier -
      */
-    private void quit(String gameIdentifier) {
-
+    private String quit(String[] parameters) {
+        String gameId = parameters[0];
+        String clientId = "";
+        for (String id : clientList.keySet()) {
+            if (clientList.get(id).getSessionId() == currentSessionId) {
+                clientId = id;
+            }
+        }
+        String defaultWinner = "";
+        for (String player: games.get(gameId).getPlayers()) {
+            if (!player.equals(clientId)) {
+                defaultWinner = player;
+            }
+        }
+        return games.get(gameId).getBoardStatus() + " " + defaultWinner;
     }
 
     /**
      * STAT:
      * Client-sent message
      * 
-     * @param gameIdentifier -
      */
 
     private String getGameStatus(String[] parameters) {

@@ -21,8 +21,8 @@ public class Client {
 
         ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|", "", "");
 
-        // System.out.print("Enter Version: ");
-        // String version = scanner.nextLine();
+        System.out.print("Enter Version: ");
+        String version = scanner.nextLine();
 
         if (service.equalsIgnoreCase("TCP")) {
             try {
@@ -35,7 +35,7 @@ public class Client {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
                 // Send greeting message
-                out.println("HELO " + protocolVersion + " " + newClient.getClientID() + "\r\n");
+                out.println("HELO " + version + " " + newClient.getClientID() + "\r\n");
                 // long startTime = System.currentTimeMillis();
                 // long timeout = 3000;
 
