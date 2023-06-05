@@ -103,7 +103,8 @@ public class Game {
         if (winnerMarker == null) {
             return "CATS";
         } else {
-            return winnerMarker == "X" ? players.get(1) : players.get(0);
+            System.out.println(players);
+            return winnerMarker.equals("X") ? players.get(0) : players.get(1);
         }
     }
 
@@ -130,10 +131,14 @@ public class Game {
 
         // Check diagonals
         if ((gameBoard[0][0].equals(gameBoard[1][1]) && gameBoard[1][1].equals(gameBoard[2][2])
-                && !gameBoard[0][0].equals("*"))
-                || (gameBoard[0][2].equals(gameBoard[1][1]) && gameBoard[1][1].equals(gameBoard[2][0])
-                        && !gameBoard[0][2].equals("*"))) {
+                && !gameBoard[0][0].equals("*")) ) {
             winnerMarker = gameBoard[0][0];
+            return true;
+        }
+
+        if (gameBoard[0][2].equals(gameBoard[1][1]) && gameBoard[1][1].equals(gameBoard[2][0])
+                        && !gameBoard[0][2].equals("*")) {
+            winnerMarker = gameBoard[0][2];
             return true;
         }
 

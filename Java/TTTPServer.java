@@ -368,26 +368,52 @@ public class TTTPServer {
 
             } else if (command.equals("QUIT")) {
                 String gameId = args[0];
-                String defaultWinner = args[1];
+                String nonQuittingPlayer = args[1];
+                String quittingPlayer = "";
+            
                 
                 for (String player : games.get(gameId).getPlayers()) {
                     clients.get(player).setGameId(null);
+                    winner = nonQuittingPlayer;
                 
-                    if (player.equals(defaultWinner)) {
+                    if (player.equals(nonQuittingPlayer)) {
                         ClientData curPlayer = clients.get(player);
                         InetAddress playerIpAddress = curPlayer.getIpAddress();
                         int playerPort = curPlayer.getPortUDP();
                         Game game = games.get(gameId);
-                        String gameWonBordMsg = game.getBoardStatus() + " " + defaultWinner + " " + defaultWinner + " " + game.getBoard() + " " + defaultWinner;
+                        String gameWonBordMsg = game.getBoardStatus() + " " + nonQuittingPlayer + " " + nonQuittingPlayer + " " + game.getBoard() + " " + nonQuittingPlayer;
                         games.get(gameId).setBoardStatus(response);
                         if (clients.get(player).getPortUDP() == -999) {
-                            clients.get(player).getOut().println(gameWonBordMsg);
+                            clients.get(player).getOut().println(gameWonBordMsg + "\r");
                             System.out.println("***TCP SERVER SAYS: " + gameWonBordMsg);
+                            clients.get(player).getOut().println("TERM " + gameId + " " + winner + " KTHXBYE" + "\r");
+                            System.out.println("***TCP SERVER SAYS: " + "TERM " + gameId + " " + winner + " KTHXBYE");
                         } else {
-                            DatagramPacket bordMsg = new DatagramPacket(gameWonBordMsg.getBytes(),
+                            DatagramPacket bordMsg = new DatagramPacket((gameWonBordMsg + "\r").getBytes(),
                                     gameWonBordMsg.getBytes().length, playerIpAddress, playerPort);
                             curPlayer.getUDPSocket().send(bordMsg);
                             System.out.println("***UDP SERVER SAYS: " + gameWonBordMsg);
+
+                            String msgHldr = "TERM " + gameId + " " + winner + " KTHXBYE";
+                            DatagramPacket termMsg = new DatagramPacket((msgHldr + "\r").getBytes(),
+                                    msgHldr.getBytes().length, playerIpAddress, playerPort);
+                            curPlayer.getUDPSocket().send(termMsg);
+                            System.out.println("***UDP SERVER SAYS: " + msgHldr);
+                        }
+                    } else {
+                        quittingPlayer = player;
+                        ClientData curPlayer = clients.get(player);
+                        InetAddress playerIpAddress = curPlayer.getIpAddress();
+                        int playerPort = curPlayer.getPortUDP();
+                        String terminationMessage = "TERM " + gameId + " " + winner + " KTHXBYE";
+                        if (clients.get(player).getPortUDP() == -999) {
+                            clients.get(player).getOut().println(terminationMessage + "\r");
+                            System.out.println("***TCP SERVER SAYS: " + terminationMessage);
+                        } else {
+                            DatagramPacket bordMsg = new DatagramPacket((terminationMessage + "\r").getBytes(),
+                                    terminationMessage.getBytes().length, playerIpAddress, playerPort);
+                            curPlayer.getUDPSocket().send(bordMsg);
+                            System.out.println("***UDP SERVER SAYS: " + terminationMessage);
                         }
                     }
                 }
