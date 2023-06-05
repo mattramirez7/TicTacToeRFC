@@ -183,10 +183,10 @@ public class CommandHandler {
         String marker = currentPlayer.equals(players.get(0)) ? "X" : "O";
 
         if (move < 1 || move > 9) {
-            return "YMRV " + gameId + " " + currentPlayer;
+            return "YRMV " + gameId + " " + currentPlayer;
         }
         if (!boardContent[move - 1].trim().equals("*")) {
-            return "YMRV " + gameId + " " + currentPlayer;
+            return "YRMV " + gameId + " " + currentPlayer;
         }
         String updatedGameBoard = gameBoard.substring(0, (move * 2) - 1) + marker + gameBoard.substring(move * 2);
 

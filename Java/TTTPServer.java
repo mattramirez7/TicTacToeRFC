@@ -299,7 +299,7 @@ public class TTTPServer {
             String winner = null;
 
             if (command.equals("JOND")) {
-                String clientId = args[0];
+                String clientId =args[0];
                 String gameId = args[1];
 
                 List<String> players = new ArrayList<String>();
