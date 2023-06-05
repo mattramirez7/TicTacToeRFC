@@ -4,35 +4,13 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.net.URL;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-import java.net.spi.URLStreamHandlerProvider;
 
 public class TTTPServer {
     private static HashMap<String, Game> games;
     private static HashMap<String, ClientData> clients;
     private static final List<String> COMMANDS = new ArrayList<String>();
     private static HashMap<Integer, Integer> sessionVersions = new HashMap<Integer, Integer>();
-
-    static class ClasspathURLStreamHandlerProvider extends URLStreamHandlerProvider {
-
-        @Override
-        public URLStreamHandler createURLStreamHandler(String protocol) {
-            if ("classpath".equals(protocol)) {
-                return new URLStreamHandler() {
-                    @Override
-                    protected URLConnection openConnection(URL u) throws IOException {
-                        return ClassLoader.getSystemClassLoader().getResource(u.getPath()).openConnection();
-                    }
-                };
-            }
-            return null;
-        }
-
-    }
 
     static {
         COMMANDS.add("CREA");
@@ -62,16 +40,12 @@ public class TTTPServer {
 
         try (ServerSocket server = new ServerSocket(port)) {
             server.setReuseAddress(true);
-
-            // CustomURLConnection connection = new CustomURLConnection(new
-            // URL("t3tcp://localhost:" + port));
             System.out.println("TCP server started and listening at t3tcp://localhost:" + port);
 
             while (true) {
                 Socket tcpSocket = server.accept();
 
                 tcpHandler clientSock = new tcpHandler(tcpSocket);
-                System.out.println("New TCP client connected: " + clientSock.id);
                 new Thread(clientSock).start();
             }
         } catch (IOException e) {
@@ -83,7 +57,7 @@ public class TTTPServer {
         DatagramSocket udpSocket = null;
         try {
             udpSocket = new DatagramSocket(port);
-            System.out.println("UDP server started and listening on port " + port);
+            System.out.println("UDP server started and listening t3udp://localhost: " + port);
 
             byte[] buffer = new byte[256];
             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
@@ -135,7 +109,7 @@ public class TTTPServer {
                     if ((line = in.readLine()) == null || line.equals("\r\n") || line.equals("")) {
                         continue;
                     }
-                    System.out.printf("TCP Client " + this.id + "sent: %s\n ", line);
+                    System.out.printf("***TCP CLIENT:  " + this.id + "sent: %s\n ", line);
                     String response = callCommand(line, this.id);
 
                     String[] responseArgs = response.split("\\s+");
@@ -161,8 +135,39 @@ public class TTTPServer {
 
                     if (!command.equals("QUIT")) {
                         out.println(response + "\r\n");
-                        System.out.println("Sending response: " + response);
+                        System.out.println("***RESPONSE SENT: " + response);
                     }
+
+                    if (args.length == 6) {
+                        String nextPlayerMove = args[3];
+                        String currentPlayerMove = args[1];
+                        String gameId = args[0];
+                        String winner = args[5];
+                        clients.get(currentPlayerMove).setGameId(null);
+                        clients.get(nextPlayerMove).setGameId(null);
+    
+                        String termGameMsg = "TERM " + gameId;
+                        if (!winner.equals("CATS")) {
+                            termGameMsg = "TERM " + gameId + " " + winner + " KTHXBYE";
+                        } else {
+                            termGameMsg += " KTHXBYE";
+                        }
+                        for (String player : games.get(gameId).getPlayers()) {
+                            ClientData curPlayer = clients.get(player);
+                            InetAddress playerIpAddress = curPlayer.getIpAddress();
+                            int playerPort = curPlayer.getPortUDP();
+    
+                            if (curPlayer.getPortUDP() != -999) {
+                                DatagramPacket termMsg = new DatagramPacket(termGameMsg.getBytes(),
+                                        termGameMsg.getBytes().length, playerIpAddress, playerPort);
+                                curPlayer.getUDPSocket().send(termMsg);
+                            } else {
+                                curPlayer.getOut().println(termGameMsg);
+                            }
+                            System.out.println("***RESPONSE SENT: " + termGameMsg);
+                        }
+                        startGame = false;
+                    } 
 
                     if (startGame) {
                         sendYRMVUpdates(args);
@@ -208,18 +213,15 @@ public class TTTPServer {
                     byte[] receiveData = receivePacket.getData();
                     int length = receivePacket.getLength();
 
-                    // Convert received data to a string
                     String receivedMessage = new String(receiveData, 0, length);
 
                     if (receivedMessage == null | receivedMessage.equals("\r\n") | receivedMessage.equals("")) {
                         continue;
                     }
-                    // Process the received message
-                    System.out.printf("Received from UDP client %d: %s%n", clientPort, receivedMessage);
+                    System.out.printf("***RECIEVED FROM UDP CLIENT %d: %s%n", clientPort, receivedMessage);
 
                     String response = callCommand(receivedMessage, port);
 
-                    // Send a response back to the client
                     byte[] responseData = response.getBytes();
                     String[] responseArgs = response.split("\\s+");
                     String command = responseArgs[0];
@@ -245,6 +247,37 @@ public class TTTPServer {
                         DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length,
                                 clientIpAddress, clientPort);
                         serverSocket.send(generalResponsePacket);
+                    }
+
+                    if (args.length == 6) {
+                        String nextPlayerMove = args[3];
+                        String currentPlayerMove = args[1];
+                        String gameId = args[0];
+                        String winner = args[5];
+                        clients.get(currentPlayerMove).setGameId(null);
+                        clients.get(nextPlayerMove).setGameId(null);
+    
+                        String termGameMsg = "TERM " + gameId;
+                        if (!winner.equals("CATS")) {
+                            termGameMsg = "TERM " + gameId + " " + winner + " KTHXBYE";
+                        } else {
+                            termGameMsg += " KTHXBYE";
+                        }
+                        for (String player : games.get(gameId).getPlayers()) {
+                            ClientData curPlayer = clients.get(player);
+                            InetAddress playerIpAddress = curPlayer.getIpAddress();
+                            int playerPort = curPlayer.getPortUDP();
+    
+                            if (curPlayer.getPortUDP() != -999) {
+                                DatagramPacket termMsg = new DatagramPacket(termGameMsg.getBytes(),
+                                        termGameMsg.getBytes().length, playerIpAddress, playerPort);
+                                curPlayer.getUDPSocket().send(termMsg);
+                            } else {
+                                curPlayer.getOut().println(termGameMsg);
+                            }
+                            System.out.println("***RESPONSE SENT: " + termGameMsg);
+                        }
+                        startGame = false;
                     }
 
                     if (startGame) {
@@ -273,7 +306,6 @@ public class TTTPServer {
                 if (games.keySet().contains(gameId)) {
                     Game game = games.get(gameId);
                     game.addPlayer(clientId);
-                    System.out.println("Second Conditonal Value: " + games.values().stream().anyMatch(gamez -> game.getPlayers().contains(clientId)));
                             if (games.size() > 0 && games.values().stream().anyMatch(gamez -> game.getPlayers().contains(clientId))) {
                                 players.addAll(games.get(gameId).getPlayers());
                             }
@@ -315,17 +347,18 @@ public class TTTPServer {
                 String gameBoard = args[4];
                 if (args.length == 6) {
                     winner = args[5];
-                    System.out.println("response: " + response);
+                    System.out.println("***RESPONSE: " + response);
                     if (winner.equals("CATS")) {
                         response = response.substring(0, response.lastIndexOf("CATS")).trim();
-                        System.out.println("CATS response: " + response);
+                        System.out.println("***CATS RESPONSE: " + response);
                     }
 
                 }
-                System.out.println("Actual response: " + response);
+                System.out.println("***ACTUAL RESPONSE: " + response);
                 games.get(gameId).setBoardStatus(response);
                 games.get(gameId).updateBoard(gameBoard);
                 ClientData nextPlayer = clients.get(nextPlayerMove);
+                startGame = true;
                 if (nextPlayer.getPortUDP() != -999) {
                     DatagramPacket gameUpdateResponse = new DatagramPacket(response.getBytes(),
                             response.getBytes().length, nextPlayer.getIpAddress(), nextPlayer.getPortUDP());
@@ -334,36 +367,6 @@ public class TTTPServer {
                     clients.get(nextPlayerMove).getOut().println(response);
                 }
 
-                if (args.length == 6) {
-                    String currentPlayerMove = args[1];
-                    clients.get(currentPlayerMove).setGameId(null);
-                    clients.get(nextPlayerMove).setGameId(null);
-
-                    String termGameMsg = "TERM " + gameId;
-                    if (!winner.equals("CATS")) {
-                        termGameMsg = "TERM " + gameId + " " + winner + " KTHXBYE";
-                    } else {
-                        termGameMsg += " KTHXBYE";
-                    }
-                    for (String player : games.get(gameId).getPlayers()) {
-                        ClientData curPlayer = clients.get(player);
-                        InetAddress playerIpAddress = curPlayer.getIpAddress();
-                        int playerPort = curPlayer.getPortUDP();
-
-                        if (curPlayer.getPortUDP() != -999) {
-                            DatagramPacket termMsg = new DatagramPacket(termGameMsg.getBytes(),
-                                    termGameMsg.getBytes().length, playerIpAddress, playerPort);
-                            curPlayer.getUDPSocket().send(termMsg);
-                        } else {
-                            curPlayer.getOut().println(termGameMsg);
-                        }
-                        System.out.println("Response sent: " + termGameMsg);
-                    }
-                
-
-                } else {
-                    startGame = true;
-                }
 
             } else if (command.equals("QUIT")) {
                 String gameId = args[0];
@@ -424,8 +427,7 @@ public class TTTPServer {
                 } else {
                     curPlayer.getOut().println(data);
                 }
-
-                System.out.println("Response sent: " + data);
+                System.out.println("***RESPONSE SENT TO CLIENT: " + data);
             }
         } catch (Exception err) {
             err.printStackTrace();

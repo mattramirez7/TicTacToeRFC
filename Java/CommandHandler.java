@@ -185,10 +185,10 @@ public class CommandHandler {
         String marker = currentPlayer.equals(players.get(0)) ? "X" : "O";
 
         if (move < 1 || move > 9) {
-            return "ERROR: Invalid move! Choose a number from 1-9.";
+            return "YMRV " + gameId + " " + currentPlayer;
         }
         if (!boardContent[move - 1].trim().equals("*")) {
-            return "ERROR: Invalid move! Space " + "\'" + move + "\'" + " is taken.";
+            return "YMRV " + gameId + " " + currentPlayer;
         }
         String updatedGameBoard = gameBoard.substring(0, (move * 2) - 1) + marker + gameBoard.substring(move * 2);
 

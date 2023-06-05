@@ -5,6 +5,7 @@ import java.io.*;
 import java.net.*;
 
 public class Client {
+    private int port;
 
     public static void main(String... args) {
         String host = "localhost";
@@ -28,7 +29,7 @@ public class Client {
             try {
                 // Establish TCP connection
                 Socket socket = new Socket(host, port);
-                System.out.println("TCP connection established");
+                System.out.println("Connected to t3tcp://locahost: " + port);
 
                 // Create input and output streams for the socket
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -122,8 +123,9 @@ public class Client {
             try {
                 InetAddress address = InetAddress.getByName(host);
                 DatagramSocket socket = new DatagramSocket();
+                System.out.println("Connected to t3tcp://locahost: " + port);
 
-                String greetingMessage = "HELO " + protocolVersion + " " + newClient.getClientID() + "\r\n";
+                String greetingMessage = "HELO " + version + " " + newClient.getClientID() + "\r\n";
                 byte[] sendData = greetingMessage.getBytes();
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                 socket.send(sendPacket);
@@ -204,7 +206,7 @@ public class Client {
         } else if (action.equals("TERM")) { // audrey
             //newClient.setTerminated(true);
             if(response.length == 3) {
-                System.out.println("This game has tied and the session will now shut.");
+                System.out.println("This game has tied and the session will now shut down.");
             }
             request = "";
             // request = "TERM";
