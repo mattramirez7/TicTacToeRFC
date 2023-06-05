@@ -37,81 +37,24 @@ public class Client {
 
                 // Send greeting message
                 out.println("HELO " + version + " " + newClient.getClientID() + "\r\n");
-                // long startTime = System.currentTimeMillis();
-                // long timeout = 3000;
-
-                // String acknowledgment = in.readLine();
-                // System.out.println("Received acknowledgment from the server: " +
-                // acknowledgment);
 
                 // Receive acknowledgment
                 while (!newClient.getTerminated()) {
-                    // String awaitingServer = scanner.nextLine();
-                    // if()
                     String rawResponse = in.readLine();
-                    //String noResponse = "";
 
                     if (rawResponse == null | rawResponse.equals("\r\n") | rawResponse.equals("")) {
-                        // System.out.println("It is null");
-                        // if(System.currentTimeMillis() - startTime > timeout) {
-                        //     System.out.println("No message received from Server in One Minute. Would you like to \"quit\", \"continue\", or say \"goodbye\" to the session.");
-                        //     String nextMove = scanner.nextLine();
-                        //     if(nextMove.contains("quit")) {
-                        //         noResponse = "QUIT " + newClient.getGameId();
-                        //     } else if (nextMove.contains("goodbye")) {
-                        //         noResponse = "GDBY " + newClient.getGameId();
-                        //     } else {
-                        //         startTime = System.currentTimeMillis();
-                        //         continue;
-                        //     }
-                        // } 
                         continue;
                     }
-                    System.out.println("Received response from the server: " + rawResponse);
-                    // String[] response=in.readLine().split(" ");
+                    //System.out.println("Received response from the server: " + rawResponse);
                     String[] response = rawResponse.split(" ");
-                    System.out.println("parsed response from the server: " + Arrays.toString(response));
+                    //System.out.println("parsed response from the server: " + Arrays.toString(response));
                     String message = handleResponse(response, newClient);
 
-                    // if(!noResponse.equals("")) {
-                    //     message = noResponse;
-                    // }
-
-                    // System.out.println("parsed response from the server: " + response);
-                    //!newClient.getTerminated() &&
                     if (!message.equals("")) {
-                        System.out.println("Sending message to server: " + message);
+                        //System.out.println("Sending message to server: " + message);
                         out.println(message + "\r\n");
-                        //startTime = System.currentTimeMillis();
-                        // out.println(message);
-                        if(newClient.getLastCall().contains("QUIT")) {
-                            newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
-                            newClient.setSymbol("");
-                            newClient.setGameId("");
-                            out.println(getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient));
-                            //startTime = System.currentTimeMillis();
-                        }
                     } 
-                    // if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
-                    //     if (response.length == 4) {
-                    //         if (response[2].equals(newClient.getClientID())) {
-                    //             System.out.println(
-                    //                     "You have been declared the winner and the game is terminated! Congrats!");
-                    //         } else {
-                    //             System.out.println(
-                    //                     "The game has been terminated and you have lost. Better luck next time!");
-                    //         }
-                    //     } else {
-                    //         System.out.println(
-                    //                 "No one was declared a winner, and the game has been terminated. Better luck next time!");
-                    //     }
-                    // } else if (message.equals("")) {
-                    //     // do something here to handle quit and stat
-                    // }
                 }
-
-                // System.out.print("Would u like to create a game or join an existing game?");
-                // String action = scanner.nextLine();
 
                 // Close the TCP connection
                 socket.close();
@@ -140,46 +83,23 @@ public class Client {
                     // Extract the response message
                     String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
                     response = response.replaceAll("(\\r|\\n)", "");
-                    System.out.println("Received response from the server: " + response);
+                    //System.out.println("Received response from the server: " + response);
 
                     // Handle the response
                     String[] responseParts = response.split(" ");
-                    System.out.println(Arrays.toString(responseParts));
-                    System.out.println(responseParts[2]);
+                    //System.out.println(Arrays.toString(responseParts));
+                    //System.out.println(responseParts[2]);
                     String message = handleResponse(responseParts, newClient);
                     //!newClient.getTerminated() &&
                     if (!message.equals("")) {
-                        System.out.println("Sending message to server: " + message);
+                        //System.out.println("Sending message to server: " + message);
 
                         // Send message to the server
                         message = message + "\r\n";
                         sendData = message.getBytes();
                         sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                         socket.send(sendPacket);
-                        if(newClient.getLastCall().contains("QUIT")) {
-                            newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
-                            newClient.setSymbol("");
-                            newClient.setGameId("");
-                            message = (getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient)) + "\r\n";
-                            sendData = message.getBytes();
-                            sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
-                            socket.send(sendPacket);
-                        }
                     } 
-                    // if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
-                    //     if (responseParts.length == 4) {
-                    //         if (responseParts[2].equals(newClient.getClientID())) {
-                    //             System.out.println(
-                    //                     "You have been declared the winner and the game is terminated! Congrats!");
-                    //         } else {
-                    //             System.out.println(
-                    //                     "The game has been terminated and you have lost. Better luck next time!");
-                    //         }
-                    //     } else {
-                    //         System.out.println(
-                    //                 "No one was declared a winner, and the game has been terminated. Better luck next time!");
-                    //     }
-                    // }
                 }
 
                 socket.close();
@@ -210,23 +130,31 @@ public class Client {
             request = getJond(response, newClient);
         } else if (action.equals("TERM")) { // audrey
             //newClient.setTerminated(true);
-            if(response.length == 3) {
-                Scanner scanner = new Scanner(System.in);
-                System.out.println("This game has tied.");
-                System.out.println("Would you like to \"end\" the session or start a \"new\" game? ");
-                String nextStep = scanner.nextLine();
-                if(nextStep.contains("end")) {
-                    newClient.setTerminated(true);
-                    newClient.setLastCall("DONE");
-                    return "GDBY " + response[1];
+            if (response.length == 4) {
+                if (response[2].equals(newClient.getClientID())) {
+                    System.out.println(
+                            "You have been declared the winner and the game is terminated! Congrats!");
                 } else {
-                    newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
-                    newClient.setSymbol("");
-                    newClient.setGameId("");
-                    return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+                    System.out.println(
+                            "The game has been terminated and you have lost. Better luck next time!");
                 }
+            } else if(response.length == 3) {
+                System.out.println("This game has tied. Better luck next time!");
             }
-            request = "";
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Would you like to \"end\" the session or start a \"new\" game? ");
+            String nextStep = scanner.nextLine();
+            if(nextStep.contains("end")) {
+                newClient.setTerminated(true);
+                newClient.setLastCall("DONE");
+                return "GDBY " + response[1];
+            } else {
+                newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
+                newClient.setSymbol("");
+                newClient.setGameId("");
+                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+            }
+            //request = "";
             // request = "TERM";
         } else if (action.equals("YRMV")) { // emily
             request = getYrmv(response, newClient);
@@ -307,7 +235,7 @@ public class Client {
         } else if (response.length == 6) { // [gameid,clientid of X player,clientid of o player, clientid whose turn,
                                            // board symbols]
             newClient.setBoard(response[5]);
-            System.out.println("Current Board: " + response[5]);
+            //System.out.println("Current Board: " + response[5]);
             System.out.println("X player: " + response[2]);
             System.out.println("O player: " + response[3]);
         } else if (response.length == 7) {// [gameid,clientid of X player,clientid of o player, clientid whose turn,
@@ -324,20 +252,6 @@ public class Client {
                 }
             }
             System.out.println("");
-
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Would you like to \"end\" the session or start a \"new\" game? ");
-            String nextStep = scanner.nextLine();
-            if(nextStep.contains("end")) {
-                newClient.setTerminated(true);
-                newClient.setLastCall("DONE");
-                return "GDBY " + response[1];
-            } else {
-                newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
-                newClient.setSymbol("");
-                newClient.setGameId("");
-                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
-            }
 
         }
         return "";
@@ -377,7 +291,6 @@ public class Client {
     public static String getGdby(String[] response, ClientHandler newClient) {
         System.out.println("The server ended the session");
         newClient.setTerminated(true);
-        // System.out.println("Do you wish to start a new session? (y/n)");
         return "";
     }
 
