@@ -224,7 +224,7 @@ public class CommandHandler {
                 defaultWinner = player;
             }
         }
-        return games.get(gameId).getBoardStatus() + " " + defaultWinner;
+        return "QUIT " + gameId + " " + defaultWinner;
     }
 
     /**

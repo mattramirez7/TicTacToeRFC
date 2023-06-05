@@ -5,6 +5,11 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.net.URL;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.net.spi.URLStreamHandlerProvider;
 
 public class TTTPServer {
     private static HashMap<String, Game> games;
@@ -12,18 +17,21 @@ public class TTTPServer {
     private static final List<String> COMMANDS = new ArrayList<String>();
     private static HashMap<Integer, Integer> sessionVersions = new HashMap<Integer, Integer>();
 
-    static class CustomURLConnection extends URLConnection {
+    static class ClasspathURLStreamHandlerProvider extends URLStreamHandlerProvider {
 
-        protected CustomURLConnection(URL url) {
-            super(url);
-        }
-    
         @Override
-        public void connect() throws IOException {
-            // Do your job here. As of now it merely prints "Connected!".
-            System.out.println("Connected!");
+        public URLStreamHandler createURLStreamHandler(String protocol) {
+            if ("classpath".equals(protocol)) {
+                return new URLStreamHandler() {
+                    @Override
+                    protected URLConnection openConnection(URL u) throws IOException {
+                        return ClassLoader.getSystemClassLoader().getResource(u.getPath()).openConnection();
+                    }
+                };
+            }
+            return null;
         }
-    
+
     }
 
     static {
@@ -54,8 +62,9 @@ public class TTTPServer {
 
         try (ServerSocket server = new ServerSocket(port)) {
             server.setReuseAddress(true);
-            
-            // CustomURLConnection connection = new CustomURLConnection(new URL("t3tcp://localhost:" + port));
+
+            // CustomURLConnection connection = new CustomURLConnection(new
+            // URL("t3tcp://localhost:" + port));
             System.out.println("TCP server started and listening at t3tcp://localhost:" + port);
 
             while (true) {
@@ -69,7 +78,6 @@ public class TTTPServer {
             e.printStackTrace();
         }
     }
-
 
     private static void handleUDPRequest() {
         DatagramSocket udpSocket = null;
@@ -140,11 +148,13 @@ public class TTTPServer {
                         ClientData newClient = new ClientData(protocolVersion, sessionId, out);
                         clients.put(clientId, newClient);
                     }
-                    
+
                     startGame = updateData(response);
 
-                    out.println(response + "\r\n");
-                    System.out.println("Sending response: " + response);
+                    if (!command.equals("QUIT")) {
+                        out.println(response + "\r\n");
+                        System.out.println("Sending response: " + response);
+                    }
 
                     if (startGame) {
                         sendYRMVUpdates(args);
@@ -211,14 +221,17 @@ public class TTTPServer {
                     if (command.equals("SESS")) {
                         int protocolVersion = Integer.parseInt(args[0]);
                         String clientId = receivedMessage.split("\\s+")[2];
-                        ClientData newClient = new ClientData(protocolVersion, clientPort, clientIpAddress, serverSocket);
+                        ClientData newClient = new ClientData(protocolVersion, clientPort, clientIpAddress,
+                                serverSocket);
                         clients.put(clientId, newClient);
                     }
                     startGame = updateData(response);
 
-                    DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length,
-                            clientIpAddress, clientPort);
-                    serverSocket.send(generalResponsePacket);
+                    if (!command.equals("QUIT")) {
+                        DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length,
+                                clientIpAddress, clientPort);
+                        serverSocket.send(generalResponsePacket);
+                    }
 
                     if (startGame) {
                         sendYRMVUpdates(args);
@@ -333,7 +346,30 @@ public class TTTPServer {
                     startGame = true;
                 }
 
+            } else if (command.equals("QUIT")) {
+                String gameId = args[0];
+                String defaultWinner = args[1];
+                
+                for (String player : games.get(gameId).getPlayers()) {
+                    clients.get(player).setGameId(null);
+                
+                    if (player.equals(defaultWinner)) {
+                        ClientData curPlayer = clients.get(player);
+                        InetAddress playerIpAddress = curPlayer.getIpAddress();
+                        int playerPort = curPlayer.getPortUDP();
+                        String gameWonBordMsg = games.get(gameId).getBoardStatus() + " " + defaultWinner;
+                        games.get(gameId).setBoardStatus(response);
+                        if (clients.get(player).getPortUDP() == -999) {
+                            clients.get(player).getOut().println(gameWonBordMsg);
+                        } else {
+                            DatagramPacket bordMsg = new DatagramPacket(gameWonBordMsg.getBytes(),
+                                    gameWonBordMsg.getBytes().length, playerIpAddress, playerPort);
+                            curPlayer.getUDPSocket().send(bordMsg);
+                        }
+                    }
+                }
             }
+
             return startGame;
         } catch (Exception err) {
             err.printStackTrace();
