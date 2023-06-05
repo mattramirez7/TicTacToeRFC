@@ -8,20 +8,21 @@ public class CommandHandler {
     private HashMap<String, ClientData> clientList;
     private int currentSessionId;
     private HashMap<String, Game> games;
+    private int protocolVersion = 9999;
 
     public CommandHandler(HashMap<String, ClientData> clientList, int sessionID, HashMap<String, Game> games) {
         this.clientList = clientList;
         this.currentSessionId = sessionID;
         this.games = games;
+        
     }
 
     public String handleRequest(String command, String[] parameters) {
         switch (command) {
             case ("CREA"):
                 return createGame(parameters);
-            case ("GDBY"):
-                quit(command);
-                break;
+            case ("GDBY"):  
+                return quit(parameters);
             case ("HELO"):
                 return createSession(parameters);
             case ("JOIN"):
@@ -31,11 +32,9 @@ public class CommandHandler {
             case ("MOVE"):
                 return move(parameters);
             case ("QUIT"):
-                break;
+                return quit(parameters);
             case ("STAT"):
                 return getGameStatus(parameters);
-            // case ("SHOW"):
-            // return prettyPrintBoard(parameters);
             default:
                 break;
         }
@@ -64,6 +63,11 @@ public class CommandHandler {
         return "JOND " + clientId + " " + gameId;
     }
 
+    public int getVersion() {
+        return this.protocolVersion;
+    }
+
+
     /**
      * HELO
      * Client-sent message
@@ -74,7 +78,7 @@ public class CommandHandler {
         if (parameters.length < 2) {
             return "ERROR: Invalid Parameters";
         }
-        String version = parameters[0];
+        this.protocolVersion = Integer.valueOf(parameters[0]);
         String clientId = parameters[1];
 
         for (String client : clientList.keySet()) {
@@ -84,9 +88,9 @@ public class CommandHandler {
         }
         if (clientList.keySet().contains(clientId)) {
             return "ERROR: Identifier \'" + clientId + "\' is unavailable";
-        }
-        return "SESS " + currentSessionId + " " + clientId;
+        }        
 
+        return "SESS " + protocolVersion + " " + this.currentSessionId;
     }
 
     /**
@@ -135,7 +139,9 @@ public class CommandHandler {
 
         for (String gameId : games.keySet()) {
             if (body.equals("CURR")) {
-                if (games.get(gameId).getBoard().endsWith("|")) {
+                String boardStatus = games.get(gameId).getBoardStatus();
+                String[] args = boardStatus.split("\\s+");
+                if (args.length == 3 || args.length == 5) {
                     response += " " + gameId;
                 }
             } else if (body.equals("ALL")) {
@@ -147,15 +153,15 @@ public class CommandHandler {
             }
         }
 
-        if (response.equals("GAMS")) {
-            response = "ERROR: No games available to join";
-        }
+        // if (response.equals("GAMS")) {
+        //     response = "ERROR: No games available to join";
+        // }
         return response;
     }
 
     /**
      * MOVE
-     * Storing Cleint Move
+     * Storing Client Move
      * 
      * @param moveRequest
      */
@@ -177,19 +183,19 @@ public class CommandHandler {
         String marker = currentPlayer.equals(players.get(0)) ? "X" : "O";
 
         if (move < 1 || move > 9) {
-            return "ERROR: Invalid move! Choose a number from 1-9.";
+            return "YMRV " + gameId + " " + currentPlayer;
         }
         if (!boardContent[move - 1].trim().equals("*")) {
-            return "ERROR: Invalid move! Space " + "\'" + move + "\'" + " is taken.";
+            return "YMRV " + gameId + " " + currentPlayer;
         }
         String updatedGameBoard = gameBoard.substring(0, (move * 2) - 1) + marker + gameBoard.substring(move * 2);
-        //
+
         game.updateBoard(updatedGameBoard);
-        //
+
         if (game.gameFinished()) {
-            String winner = game.getWinner();
+            String winner = game.getWinner(updatedGameBoard);
             return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "
-                    + updatedGameBoard + " " + winner;
+                + updatedGameBoard + " " + winner;
         }
 
         return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "
@@ -197,20 +203,31 @@ public class CommandHandler {
     }
 
     /**
-     * QUIT (GDBY)
+     * QUIT 
      * Client-sent message
      * 
-     * @param gameIdentifier -
      */
-    private void quit(String gameIdentifier) {
-
+    private String quit(String[] parameters) {
+        String gameId = parameters[0];
+        String clientId = "";
+        for (String id : clientList.keySet()) {
+            if (clientList.get(id).getSessionId() == currentSessionId) {
+                clientId = id;
+            }
+        }
+        String defaultWinner = "";
+        for (String player: games.get(gameId).getPlayers()) {
+            if (!player.equals(clientId)) {
+                defaultWinner = player;
+            }
+        }
+        return "QUIT " + gameId + " " + defaultWinner;
     }
 
     /**
      * STAT:
      * Client-sent message
      * 
-     * @param gameIdentifier -
      */
 
     private String getGameStatus(String[] parameters) {
@@ -219,11 +236,8 @@ public class CommandHandler {
         if (games.get(gameId) == null) {
             return "ERROR: Game " + "\'" + gameId + "\' does not exist";
         }
-        String response = "BORD " + gameId;
-        for (String player : games.get(gameId).getPlayers()) {
-            response += " " + player;
-        }
-        return response;
+       
+        return games.get(gameId).getBoardStatus();
     }
 
 }

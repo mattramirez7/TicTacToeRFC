@@ -5,10 +5,13 @@ import java.util.List;
 
 public class Game {
     private int boardSize;
+    private int gameVersion;
     private String[][] gameBoard;
     private String stringBoard;
     private List<String> players;
     private String winnerMarker;
+    private String boardStatus;
+    
 
     public Game() {
         this.boardSize = 3;
@@ -16,6 +19,8 @@ public class Game {
         this.stringBoard = "|*|*|*|*|*|*|*|*|*|";
         updateBoardMatrix();
         this.players = new ArrayList<String>();
+        this.boardStatus = "BORD";
+        this.winnerMarker = null;
     }
 
     public Game(int boardSize) {
@@ -40,6 +45,14 @@ public class Game {
         updateBoardMatrix();
     }
 
+    public void setBoardStatus(String boardStatus) {
+        this.boardStatus = boardStatus;
+    }
+
+    public String getBoardStatus() {
+        return boardStatus;
+    }
+
     public String parseArrayToString(String[][] board) {
         int size = board.length;
         StringBuilder sb = new StringBuilder();
@@ -62,11 +75,17 @@ public class Game {
         return this.players;
     }
 
+    public int getVersion() {
+        return this.gameVersion;
+    }
+
+    public void setVersion(int version) {
+        this.gameVersion = version;
+    }
     public boolean gameFinished() {
         if (!checkWinningCondition()) {
             for (String[] row : this.gameBoard) {
                 for (int i = 0; i < row.length; i++) {
-                    System.out.print(row[i]);
                     if (row[i].equals("*")) {
                         return false;
                     }
@@ -76,11 +95,16 @@ public class Game {
         return true;
     }
 
-    public String getWinner() {
+
+    public String getWinner(String gameBoard) {
         if (!gameFinished()) {
             return null;
         }
-        return winnerMarker == "X" ? players.get(1) : players.get(0);
+        if (winnerMarker == null) {
+            return "CATS";
+        } else {
+            return winnerMarker == "X" ? players.get(1) : players.get(0);
+        }
     }
 
     private boolean checkWinningCondition() {

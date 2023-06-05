@@ -5,6 +5,7 @@ import java.io.*;
 import java.net.*;
 
 public class Client {
+    private int port;
 
     public static void main(String... args) {
         String host = "localhost";
@@ -19,7 +20,7 @@ public class Client {
         System.out.print("Enter your Client Identifier: ");
         String clientIdentifier = scanner.nextLine();
 
-        ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|");
+        ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|", "", "");
 
         System.out.print("Enter Version: ");
         String version = scanner.nextLine();
@@ -28,7 +29,7 @@ public class Client {
             try {
                 // Establish TCP connection
                 Socket socket = new Socket(host, port);
-                System.out.println("TCP connection established");
+                System.out.println("Connected to t3tcp://locahost: " + port);
 
                 // Create input and output streams for the socket
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -36,11 +37,8 @@ public class Client {
 
                 // Send greeting message
                 out.println("HELO " + version + " " + newClient.getClientID() + "\r\n");
-                // System.out.println("Hi! Welcome to the game of Tic Tac Toe, using the TTTP
-                // defined in INFO 314. If at any point during the
-                // the game you are playing you want to quit, simply enter \"quit\". If at any
-                // time in the process you would like to check the stats of a particular game,
-                // type \"stats\" and press enter. Best of luck!");
+                // long startTime = System.currentTimeMillis();
+                // long timeout = 3000;
 
                 // String acknowledgment = in.readLine();
                 // System.out.println("Received acknowledgment from the server: " +
@@ -51,7 +49,22 @@ public class Client {
                     // String awaitingServer = scanner.nextLine();
                     // if()
                     String rawResponse = in.readLine();
+                    //String noResponse = "";
+
                     if (rawResponse == null | rawResponse.equals("\r\n") | rawResponse.equals("")) {
+                        // System.out.println("It is null");
+                        // if(System.currentTimeMillis() - startTime > timeout) {
+                        //     System.out.println("No message received from Server in One Minute. Would you like to \"quit\", \"continue\", or say \"goodbye\" to the session.");
+                        //     String nextMove = scanner.nextLine();
+                        //     if(nextMove.contains("quit")) {
+                        //         noResponse = "QUIT " + newClient.getGameId();
+                        //     } else if (nextMove.contains("goodbye")) {
+                        //         noResponse = "GDBY " + newClient.getGameId();
+                        //     } else {
+                        //         startTime = System.currentTimeMillis();
+                        //         continue;
+                        //     }
+                        // } 
                         continue;
                     }
                     System.out.println("Received response from the server: " + rawResponse);
@@ -59,12 +72,26 @@ public class Client {
                     String[] response = rawResponse.split(" ");
                     System.out.println("parsed response from the server: " + Arrays.toString(response));
                     String message = handleResponse(response, newClient);
+
+                    // if(!noResponse.equals("")) {
+                    //     message = noResponse;
+                    // }
+
                     // System.out.println("parsed response from the server: " + response);
                     if (!newClient.getTerminated() && !message.equals("")) {
                         System.out.println("Sending message to server: " + message);
                         out.println(message + "\r\n");
+                        //startTime = System.currentTimeMillis();
                         // out.println(message);
-                    } else if (newClient.getTerminated()) {
+                        if(newClient.getLastCall().contains("QUIT")) {
+                            newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
+                            newClient.setSymbol("");
+                            newClient.setGameId("");
+                            out.println(getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient));
+                            //startTime = System.currentTimeMillis();
+                        }
+                    } 
+                    if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
                         if (response.length == 4) {
                             if (response[2].equals(newClient.getClientID())) {
                                 System.out.println(
@@ -96,17 +123,12 @@ public class Client {
             try {
                 InetAddress address = InetAddress.getByName(host);
                 DatagramSocket socket = new DatagramSocket();
+                System.out.println("Connected to t3tcp://locahost: " + port);
 
-                String greetingMessage = "HELO " + version + " " + newClient.getClientID();
+                String greetingMessage = "HELO " + version + " " + newClient.getClientID() + "\r\n";
                 byte[] sendData = greetingMessage.getBytes();
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                 socket.send(sendPacket);
-
-                // System.out.println("Hi! Welcome to the game of Tic Tac Toe, using the TTTP
-                // defined in INFO 314. If at any point during the
-                // the game you are playing you want to quit, simply enter \"quit\". If at any
-                // time in the process you would like to check the stats of a particular game,
-                // type \"stats\" and press enter. Best of luck!");
 
                 while (!newClient.getTerminated()) {
                     // Receive response from the server
@@ -129,7 +151,17 @@ public class Client {
                         sendData = message.getBytes();
                         sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
                         socket.send(sendPacket);
-                    } else if (newClient.getTerminated()) {
+                        if(newClient.getLastCall().contains("QUIT")) {
+                            newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
+                            newClient.setSymbol("");
+                            newClient.setGameId("");
+                            message = (getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient)) + "\r\n";
+                            sendData = message.getBytes();
+                            sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
+                            socket.send(sendPacket);
+                        }
+                    } 
+                    if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
                         if (responseParts.length == 4) {
                             if (responseParts[2].equals(newClient.getClientID())) {
                                 System.out.println(
@@ -172,7 +204,10 @@ public class Client {
         } else if (action.equals("JOND")) { // emily
             request = getJond(response, newClient);
         } else if (action.equals("TERM")) { // audrey
-            newClient.setTerminated(true);
+            //newClient.setTerminated(true);
+            if(response.length == 3) {
+                System.out.println("This game has tied and the session will now shut down.");
+            }
             request = "";
             // request = "TERM";
         } else if (action.equals("YMRV")) { // emily
@@ -195,39 +230,59 @@ public class Client {
         String beginGame = scanner.nextLine();
 
         if (beginGame.contains("create")) {
+            newClient.setLastCall("CREA");
             return "CREA " + newClient.getClientID();
         } else if (beginGame.contains("join")) {
-            System.out.print("Please enter the Game ID you'd like to join.");
+            System.out.print("Please enter the Game ID you'd like to join: ");
             String gameID = scanner.nextLine();
+            newClient.setLastCall("JOIN");
             return "JOIN " + gameID;
         } else if (beginGame.contains("list")) {
             // add curr and all
             System.out.print(
-                    "Would you like to view all games currently \"open\", all games \"currently\" open and in-play, or \"all\" games including those that have concluded?");
+                    "Would you like to view all games currently \"open\", all games \"currently\" open and in-play, or \"all\" games including those that have concluded? ");
             String listType = scanner.nextLine();
 
             if (listType.contains("currently")) {
+                newClient.setLastCall("LIST CURR");
                 return "LIST CURR";
             } else if (listType.contains("all")) {
+                newClient.setLastCall("LIST ALL");
                 return "LIST ALL";
             } else if (listType.contains("open")) {
+                newClient.setLastCall("LIST");
                 return "LIST";
             }
             return "";
-            // } else if (beginGame.contains("stat")) {
-            // System.out.print("Please enter the Game ID you would like to see the stats
-            // on.");
-            // String gameID = scanner.nextLine();
-
-            // return "STAT" + gameID;
-            // }
+            
         } else {
             return "";
         }
     }
 
     public static String getBord(String[] response, ClientHandler newClient) {
-        if (response.length == 2) { // If there is not enough players to be playing this game, the command will
+        if(newClient.getLastCall().contains("STAT")) {
+            Scanner scanner = new Scanner(System.in);
+            if(response.length == 3) {
+                System.out.println("This game: " + response[1] + " only has one player in it. Would you like to \"join\"? ");
+                String joinGame = scanner.nextLine();
+
+                if(joinGame.contains("join")) {
+                    newClient.setLastCall("JOIN " + response[1]);
+                    return "JOIN " + response[1];
+                } else {
+                    //check if this length is right
+                    return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+                }
+            } else if(response.length == 7) {
+                System.out.println("This game has finished. The winner was: " + response[6]);
+                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+            } else if(response.length > 3) {
+                System.out.println("This game is currently in the middle of play.");
+                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+            }
+        }
+        else if (response.length == 3) { // If there is not enough players to be playing this game, the command will
                                     // respond solely with the game-identifier and the client-identifier of the
                                     // other player.
             System.out.println("There are not enough players playing the game.");
@@ -240,10 +295,33 @@ public class Client {
         } else if (response.length == 7) {// [gameid,clientid of X player,clientid of o player, clientid whose turn,
                                           // board symbols, clientid who won]
             System.out.println("The game has been won by " + response[6]);
-            System.out.println("The final game board: " + response[5]);
-            newClient.setTerminated(true);
-        }
 
+            System.out.println("The final game board: ");
+            newClient.setBoard(response[5]);
+            String boardCurr = newClient.getBoard();
+            for (int i = 0; i < boardCurr.length(); i++) {
+                System.out.print(boardCurr.charAt(i));
+                if (i == 6 || i == 12) {
+                    System.out.print("\n|");
+                }
+            }
+            System.out.println("");
+
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Would you like to \"end\" the session or start a \"new\" game? ");
+            String nextStep = scanner.nextLine();
+            if(nextStep.contains("end")) {
+                newClient.setTerminated(true);
+                newClient.setLastCall("DONE");
+                return "GDBY " + response[1];
+            } else {
+                newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
+                newClient.setSymbol("");
+                newClient.setGameId("");
+                return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+            }
+
+        }
         return "";
     }
 
@@ -252,11 +330,28 @@ public class Client {
         for (int i = 1; i < response.length; i++) {
             System.out.println(response[i]);
         }
+        if(response.length == 1) {
+            System.out.println("There is no open games.");
+            return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+        }
 
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Which game listed above would you like to join?");
-        String gameID = scanner.nextLine();
+        System.out.print("Would you like to view the \"status\" of a game, or \"join\" a game? ");
+        String gameStat = scanner.nextLine();
+
+        String gameID = "";
+        if(gameStat.contains("status")) {
+            System.out.print("Which game id would you like to view? ");
+            gameID = scanner.nextLine();
+            newClient.setLastCall("STAT " + gameID);
+
+            return "STAT " + gameID;
+        } else if (gameStat.contains("join")){
+            System.out.print("Which game id would you like to join? ");
+            gameID = scanner.nextLine();
+        }
+        newClient.setLastCall("JOIN " + gameID);
 
         return "JOIN " + gameID;
     }
@@ -269,9 +364,10 @@ public class Client {
     }
 
     public static String getJond(String[] response, ClientHandler newClient) {
-        Scanner scanner = new Scanner(System.in);
+        //Scanner scanner = new Scanner(System.in);
+        newClient.setGameId(response[2]);
         System.out.println("You have now joined the game: " + response[2]);
-        System.out.println("Please wait while we get the game started.");
+        System.out.println("Please wait while we get the game started. If at any point once the game starts, you'd like to quit. Please enter \"quit\". If you'd like to leave the session with the server after the game starts altogether, please enter \"goodbye\".");
         // returns nothing because waiting for yrmv to be sent
 
         return "";
@@ -280,34 +376,33 @@ public class Client {
     public static String getYrmv(String[] response, ClientHandler newClient) {
         Scanner scanner = new Scanner(System.in);
 
+        String boardCurr = newClient.getBoard();
+        for (int i = 0; i < boardCurr.length(); i++) {
+            System.out.print(boardCurr.charAt(i));
+            if (i == 6 || i == 12) {
+                System.out.print("\n|");
+            }
+        }
+
         // your move, game id, client whose turn it is id
         if (response[2].equals(newClient.getClientID())) {
-            String boardCurr = newClient.getBoard();
-            for (int i = 0; i < boardCurr.length(); i++) {
-                System.out.print(boardCurr.charAt(i));
-                if (i == 6 || i == 12) {
-                    System.out.print("\n|");
-                }
-            }
             System.out.println("");
-            // System.out.println(newClient.getBoard());
-            System.out.println("It is your turn to make a move, which space would you like to occupy?");
+            System.out.println("It is your turn to make a move, which space would you like to occupy? ");
             String moveSpace = scanner.nextLine();
+
             if (moveSpace.contains("quit")) {
+                newClient.setLastCall("QUIT " + response[1]);
                 return "QUIT " + response[1];
+            } else if (moveSpace.contains("goodbye")) {
+                newClient.setLastCall("DONE " + response[1]);
+                newClient.setTerminated(true);
+                return "GDBY " + newClient.getGameId();
             }
+            newClient.setLastCall("MOVE");
 
             return "MOVE " + response[1] + " " + moveSpace;
         } else {
-            String boardCurr = newClient.getBoard();
-            for (int i = 0; i < boardCurr.length(); i++) {
-                System.out.print(boardCurr.charAt(i));
-                if (i == 6 || i == 12) {
-                    System.out.print("\n|");
-                }
-            }
             System.out.println("");
-            // System.out.println(newClient.getBoard());
             System.out.println("It is not your move, please wait for player: " + response[2] + " to go.");
 
             return "";

@@ -1,14 +1,17 @@
 package Java;
 
 import java.io.PrintWriter;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 public class ClientData {
     private int sessionId = -999;
+    private int protocolVersion = 0;
     private String gameId;
     private PrintWriter out;
     private int portUDP = -999;
     private InetAddress ipAddress;
+    private DatagramSocket udpSocket;
 
     /**
      * TCP Constructor
@@ -17,8 +20,9 @@ public class ClientData {
      * @param gameId    - initial game id (optional)
      * @param out       - PrintWriter object used to send back messages during game
      */
-    public ClientData(int sessionId, PrintWriter out) {
+    public ClientData(int protocolVersion, int sessionId, PrintWriter out) {
         this.sessionId = sessionId;
+        this.protocolVersion = protocolVersion;
         this.gameId = null; // Initialize game ID as null (optional)
         this.out = out;
     }
@@ -31,9 +35,11 @@ public class ClientData {
      *                  connection)
      * @param ipAddress - client's IP address
      */
-    public ClientData(int port, InetAddress ipAddress) {
+    public ClientData(int protocolVersion, int port, InetAddress ipAddress, DatagramSocket udpSocket) {
         this.portUDP = port;
         this.ipAddress = ipAddress;
+        this.udpSocket = udpSocket;
+        this.protocolVersion = protocolVersion;
     }
 
     // Getters and setters (optional) for sessionId and gameId
@@ -46,6 +52,14 @@ public class ClientData {
 
     public void setSessionId(int sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public int getProtocolVersion() {
+        return this.protocolVersion;
+    }
+
+    public void setProtocolVersion(int version) {
+        this.protocolVersion = version;
     }
 
     public String getGameId() {
@@ -66,5 +80,9 @@ public class ClientData {
 
     public InetAddress getIpAddress() {
         return this.ipAddress;
+    }
+
+    public DatagramSocket getUDPSocket() {
+        return this.udpSocket;
     }
 }
