@@ -245,7 +245,7 @@ public class Client {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Would you like to \"create\" a game, \"join\" a game, or view a \"list\" of open games? ");
-        String beginGame = scanner.nextLine();
+        String beginGame = scanner.nextLine().toLowerCase();
 
         if (beginGame.contains("create")) {
             newClient.setLastCall("CREA");

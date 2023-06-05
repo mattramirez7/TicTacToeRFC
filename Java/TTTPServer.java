@@ -362,6 +362,7 @@ public class TTTPServer {
                     nextPlayer.getUDPSocket().send(gameUpdateResponse);
                 } else {
                     clients.get(nextPlayerMove).getOut().println(response);
+                    // startgame false
                 }
 
 
