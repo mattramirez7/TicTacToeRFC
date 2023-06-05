@@ -198,7 +198,6 @@ public class CommandHandler {
             String winner = game.getWinner(updatedGameBoard);
             return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "
                 + updatedGameBoard + " " + winner;
-            
         }
 
         return "BORD " + gameId + " " + players.get(0) + " " + players.get(1) + " " + nextPlayer + " "

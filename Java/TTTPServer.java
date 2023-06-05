@@ -102,10 +102,12 @@ public class TTTPServer {
 
         CommandHandler ch = new CommandHandler(clients, sessionID, games);
         if (COMMANDS.contains(command)) {
+            String output = ch.handleRequest(command, args);
             if (command.equals("HELO")) {
                 sessionVersions.put(sessionID, ch.getVersion());
+                System.out.print(sessionVersions);
             }
-            return ch.handleRequest(command, args);
+            return output;
         } else {
             return "Error";
         }
@@ -150,6 +152,12 @@ public class TTTPServer {
                     }
 
                     startGame = updateData(response);
+                    if (args.length == 6) {
+                        String winner = args[5];
+                        if (winner.equals("CATS")) {
+                            response = response.substring(0, response.lastIndexOf("CATS")).trim();
+                        }
+                    }
 
                     if (!command.equals("QUIT")) {
                         out.println(response + "\r\n");
@@ -226,6 +234,12 @@ public class TTTPServer {
                         clients.put(clientId, newClient);
                     }
                     startGame = updateData(response);
+                    if (args.length == 6) {
+                        String winner = args[5];
+                        if (winner.equals("CATS")) {
+                            response = response.substring(0, response.lastIndexOf("CATS")).trim();
+                        }
+                    }
 
                     if (!command.equals("QUIT")) {
                         DatagramPacket generalResponsePacket = new DatagramPacket(responseData, responseData.length,
@@ -301,10 +315,14 @@ public class TTTPServer {
                 String gameBoard = args[4];
                 if (args.length == 6) {
                     winner = args[5];
+                    System.out.println("response: " + response);
                     if (winner.equals("CATS")) {
                         response = response.substring(0, response.lastIndexOf("CATS")).trim();
+                        System.out.println("CATS response: " + response);
                     }
+
                 }
+                System.out.println("Actual response: " + response);
                 games.get(gameId).setBoardStatus(response);
                 games.get(gameId).updateBoard(gameBoard);
                 ClientData nextPlayer = clients.get(nextPlayerMove);
@@ -341,6 +359,7 @@ public class TTTPServer {
                         }
                         System.out.println("Response sent: " + termGameMsg);
                     }
+                
 
                 } else {
                     startGame = true;
