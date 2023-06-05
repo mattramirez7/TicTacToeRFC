@@ -40,7 +40,10 @@ public class TTTPServer {
 
         try (ServerSocket server = new ServerSocket(port)) {
             server.setReuseAddress(true);
+            System.out.println("*********");
             System.out.println("TCP server started and listening at t3tcp://localhost:" + port);
+            System.out.println("*********");
+            System.out.println();
 
             while (true) {
                 Socket tcpSocket = server.accept();
@@ -57,7 +60,10 @@ public class TTTPServer {
         DatagramSocket udpSocket = null;
         try {
             udpSocket = new DatagramSocket(port);
+            System.out.println("*********");
             System.out.println("UDP server started and listening t3udp://localhost: " + port);
+            System.out.println("*********");
+            System.out.println();
 
             byte[] buffer = new byte[256];
             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
@@ -109,7 +115,7 @@ public class TTTPServer {
                     if ((line = in.readLine()) == null || line.equals("\r\n") || line.equals("")) {
                         continue;
                     }
-                    System.out.printf("***TCP CLIENT:  " + this.id + "sent: %s\n ", line);
+                    System.out.printf("***TCP CLIENT SAYS: " + line);
                     String response = callCommand(line, this.id);
 
                     String[] responseArgs = response.split("\\s+");
@@ -135,7 +141,7 @@ public class TTTPServer {
 
                     if (!command.equals("QUIT")) {
                         out.println(response + "\r\n");
-                        System.out.println("***RESPONSE SENT: " + response);
+                        System.out.println("***TCP SERVER SAYS: " + response);
                     }
 
                     if (args.length == 6) {
@@ -164,7 +170,7 @@ public class TTTPServer {
                             } else {
                                 curPlayer.getOut().println(termGameMsg);
                             }
-                            System.out.println("***RESPONSE SENT: " + termGameMsg);
+                            System.out.println("***TCP SERVER SAYS: " + termGameMsg);
                         }
                         startGame = false;
                     } 
@@ -218,7 +224,7 @@ public class TTTPServer {
                     if (receivedMessage == null | receivedMessage.equals("\r\n") | receivedMessage.equals("")) {
                         continue;
                     }
-                    System.out.printf("***RECIEVED FROM UDP CLIENT %d: %s%n", clientPort, receivedMessage);
+                    System.out.printf("***UDP CLIENT SAYS: " + receivedMessage);
 
                     String response = callCommand(receivedMessage, port);
 
@@ -275,7 +281,7 @@ public class TTTPServer {
                             } else {
                                 curPlayer.getOut().println(termGameMsg);
                             }
-                            System.out.println("***RESPONSE SENT: " + termGameMsg);
+                            System.out.println("***UDP SERVER SAYS: " + termGameMsg);
                         }
                         startGame = false;
                     }
@@ -347,14 +353,12 @@ public class TTTPServer {
                 String gameBoard = args[4];
                 if (args.length == 6) {
                     winner = args[5];
-                    System.out.println("***RESPONSE: " + response);
                     if (winner.equals("CATS")) {
                         response = response.substring(0, response.lastIndexOf("CATS")).trim();
                         System.out.println("***CATS RESPONSE: " + response);
                     }
 
                 }
-                System.out.println("***ACTUAL RESPONSE: " + response);
                 games.get(gameId).setBoardStatus(response);
                 games.get(gameId).updateBoard(gameBoard);
                 ClientData nextPlayer = clients.get(nextPlayerMove);
@@ -427,7 +431,7 @@ public class TTTPServer {
                 } else {
                     curPlayer.getOut().println(data);
                 }
-                System.out.println("***RESPONSE SENT TO CLIENT: " + data);
+                System.out.println("***SERVER SAYS " + data);
             }
         } catch (Exception err) {
             err.printStackTrace();

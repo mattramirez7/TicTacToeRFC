@@ -22,8 +22,7 @@ public class CommandHandler {
             case ("CREA"):
                 return createGame(parameters);
             case ("GDBY"):  
-                // return quit(command);
-                break;
+                return quit(parameters);
             case ("HELO"):
                 return createSession(parameters);
             case ("JOIN"):
@@ -80,7 +79,6 @@ public class CommandHandler {
             return "ERROR: Invalid Parameters";
         }
         this.protocolVersion = Integer.valueOf(parameters[0]);
-        System.out.println("INITIAL CLIENT VERSION: " + protocolVersion);
         String clientId = parameters[1];
 
         for (String client : clientList.keySet()) {
