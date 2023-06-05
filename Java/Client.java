@@ -139,6 +139,7 @@ public class Client {
 
                     // Extract the response message
                     String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                    response = response.replaceAll("(\\r|\\n)", "");
                     System.out.println("Received response from the server: " + response);
 
                     // Handle the response
