@@ -78,7 +78,8 @@ public class Client {
                     // }
 
                     // System.out.println("parsed response from the server: " + response);
-                    if (!newClient.getTerminated() && !message.equals("")) {
+                    //!newClient.getTerminated() &&
+                    if (!message.equals("")) {
                         System.out.println("Sending message to server: " + message);
                         out.println(message + "\r\n");
                         //startTime = System.currentTimeMillis();
@@ -91,22 +92,22 @@ public class Client {
                             //startTime = System.currentTimeMillis();
                         }
                     } 
-                    if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
-                        if (response.length == 4) {
-                            if (response[2].equals(newClient.getClientID())) {
-                                System.out.println(
-                                        "You have been declared the winner and the game is terminated! Congrats!");
-                            } else {
-                                System.out.println(
-                                        "The game has been terminated and you have lost. Better luck next time!");
-                            }
-                        } else {
-                            System.out.println(
-                                    "No one was declared a winner, and the game has been terminated. Better luck next time!");
-                        }
-                    } else if (message.equals("")) {
-                        // do something here to handle quit and stat
-                    }
+                    // if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
+                    //     if (response.length == 4) {
+                    //         if (response[2].equals(newClient.getClientID())) {
+                    //             System.out.println(
+                    //                     "You have been declared the winner and the game is terminated! Congrats!");
+                    //         } else {
+                    //             System.out.println(
+                    //                     "The game has been terminated and you have lost. Better luck next time!");
+                    //         }
+                    //     } else {
+                    //         System.out.println(
+                    //                 "No one was declared a winner, and the game has been terminated. Better luck next time!");
+                    //     }
+                    // } else if (message.equals("")) {
+                    //     // do something here to handle quit and stat
+                    // }
                 }
 
                 // System.out.print("Would u like to create a game or join an existing game?");
@@ -123,7 +124,7 @@ public class Client {
             try {
                 InetAddress address = InetAddress.getByName(host);
                 DatagramSocket socket = new DatagramSocket();
-                System.out.println("Connected to t3tcp://locahost: " + port);
+                System.out.println("Connected to t3udp://locahost: " + port);
 
                 String greetingMessage = "HELO " + version + " " + newClient.getClientID() + "\r\n";
                 byte[] sendData = greetingMessage.getBytes();
@@ -142,8 +143,11 @@ public class Client {
 
                     // Handle the response
                     String[] responseParts = response.split(" ");
+                    System.out.println(Arrays.toString(responseParts));
+                    System.out.println(responseParts[2]);
                     String message = handleResponse(responseParts, newClient);
-                    if (!newClient.getTerminated() && !message.isEmpty()) {
+                    //!newClient.getTerminated() &&
+                    if (!message.equals("")) {
                         System.out.println("Sending message to server: " + message);
 
                         // Send message to the server
@@ -161,20 +165,20 @@ public class Client {
                             socket.send(sendPacket);
                         }
                     } 
-                    if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
-                        if (responseParts.length == 4) {
-                            if (responseParts[2].equals(newClient.getClientID())) {
-                                System.out.println(
-                                        "You have been declared the winner and the game is terminated! Congrats!");
-                            } else {
-                                System.out.println(
-                                        "The game has been terminated and you have lost. Better luck next time!");
-                            }
-                        } else {
-                            System.out.println(
-                                    "No one was declared a winner, and the game has been terminated. Better luck next time!");
-                        }
-                    }
+                    // if (newClient.getTerminated() && !newClient.getLastCall().contains("DONE")) {
+                    //     if (responseParts.length == 4) {
+                    //         if (responseParts[2].equals(newClient.getClientID())) {
+                    //             System.out.println(
+                    //                     "You have been declared the winner and the game is terminated! Congrats!");
+                    //         } else {
+                    //             System.out.println(
+                    //                     "The game has been terminated and you have lost. Better luck next time!");
+                    //         }
+                    //     } else {
+                    //         System.out.println(
+                    //                 "No one was declared a winner, and the game has been terminated. Better luck next time!");
+                    //     }
+                    // }
                 }
 
                 socket.close();
@@ -206,11 +210,24 @@ public class Client {
         } else if (action.equals("TERM")) { // audrey
             //newClient.setTerminated(true);
             if(response.length == 3) {
-                System.out.println("This game has tied and the session will now shut down.");
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("This game has tied.");
+                System.out.println("Would you like to \"end\" the session or start a \"new\" game? ");
+                String nextStep = scanner.nextLine();
+                if(nextStep.contains("end")) {
+                    newClient.setTerminated(true);
+                    newClient.setLastCall("DONE");
+                    return "GDBY " + response[1];
+                } else {
+                    newClient.setBoard("|*|*|*|*|*|*|*|*|*|");
+                    newClient.setSymbol("");
+                    newClient.setGameId("");
+                    return getSess(new String[]{"SESS", newClient.getSessionID(), newClient.getClientID()}, newClient);
+                }
             }
             request = "";
             // request = "TERM";
-        } else if (action.equals("YMRV")) { // emily
+        } else if (action.equals("YRMV")) { // emily
             request = getYrmv(response, newClient);
         } else {
             System.out.println("method not supported");
@@ -367,7 +384,7 @@ public class Client {
         //Scanner scanner = new Scanner(System.in);
         newClient.setGameId(response[2]);
         System.out.println("You have now joined the game: " + response[2]);
-        System.out.println("Please wait while we get the game started. If at any point once the game starts, you'd like to quit. Please enter \"quit\". If you'd like to leave the session with the server after the game starts altogether, please enter \"goodbye\".");
+        System.out.println("Please wait while we get the game started. During your turns once the game starts, if you'd like to quit please enter \"quit\". If you'd like to leave the session with the server after the game starts altogether, please enter \"goodbye\".");
         // returns nothing because waiting for yrmv to be sent
 
         return "";
@@ -383,7 +400,7 @@ public class Client {
                 System.out.print("\n|");
             }
         }
-
+        
         // your move, game id, client whose turn it is id
         if (response[2].equals(newClient.getClientID())) {
             System.out.println("");
@@ -404,7 +421,6 @@ public class Client {
         } else {
             System.out.println("");
             System.out.println("It is not your move, please wait for player: " + response[2] + " to go.");
-
             return "";
         }
     }

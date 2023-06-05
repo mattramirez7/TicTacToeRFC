@@ -57,7 +57,7 @@ public class TTTPServer {
         DatagramSocket udpSocket = null;
         try {
             udpSocket = new DatagramSocket(port);
-            System.out.println("UDP server started and listening t3udp://localhost: " + port);
+            System.out.println("UDP server started and listening t3udp://localhost:" + port);
 
             byte[] buffer = new byte[256];
             DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
@@ -414,7 +414,7 @@ public class TTTPServer {
                 ClientData curPlayer = clients.get(player);
                 InetAddress playerIpAddress = curPlayer.getIpAddress();
                 int playerPort = curPlayer.getPortUDP();
-                String data = "YMRV " + gameId + " " + currentPlayer + "\r";
+                String data = "YRMV " + gameId + " " + currentPlayer + "\r";
 
                 if (curPlayer.getPortUDP() != -999) {
                     DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(),
