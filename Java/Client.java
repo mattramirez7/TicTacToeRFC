@@ -15,10 +15,10 @@ public class Client {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("TCP or UDP: ");
-        String service = scanner.nextLine();
+        String service = scanner.nextLine().toUpperCase();
 
         System.out.print("Enter your Client Identifier: ");
-        String clientIdentifier = scanner.nextLine();
+        String clientIdentifier = scanner.nextLine().toLowerCase();
 
         ClientHandler newClient = new ClientHandler("", clientIdentifier, "", false, "|*|*|*|*|*|*|*|*|*|", "", "");
 

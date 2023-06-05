@@ -131,6 +131,7 @@ public class TTTPServer {
                             response = response.substring(0, response.lastIndexOf("CATS")).trim();
                         }
                     }
+                    
 
                     if (!command.equals("QUIT")) {
                         out.println(response + "\r");
@@ -375,14 +376,17 @@ public class TTTPServer {
                         ClientData curPlayer = clients.get(player);
                         InetAddress playerIpAddress = curPlayer.getIpAddress();
                         int playerPort = curPlayer.getPortUDP();
-                        String gameWonBordMsg = games.get(gameId).getBoardStatus() + " " + defaultWinner;
+                        Game game = games.get(gameId);
+                        String gameWonBordMsg = game.getBoardStatus() + " " + defaultWinner + " " + defaultWinner + " " + game.getBoard() + " " + defaultWinner;
                         games.get(gameId).setBoardStatus(response);
                         if (clients.get(player).getPortUDP() == -999) {
                             clients.get(player).getOut().println(gameWonBordMsg);
+                            System.out.println("***TCP SERVER SAYS: " + gameWonBordMsg);
                         } else {
                             DatagramPacket bordMsg = new DatagramPacket(gameWonBordMsg.getBytes(),
                                     gameWonBordMsg.getBytes().length, playerIpAddress, playerPort);
                             curPlayer.getUDPSocket().send(bordMsg);
+                            System.out.println("***UDP SERVER SAYS: " + gameWonBordMsg);
                         }
                     }
                 }
