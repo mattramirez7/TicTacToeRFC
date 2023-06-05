@@ -14,15 +14,14 @@ public class CommandHandler {
         this.clientList = clientList;
         this.currentSessionId = sessionID;
         this.games = games;
-        
     }
 
     public String handleRequest(String command, String[] parameters) {
         switch (command) {
             case ("CREA"):
                 return createGame(parameters);
-            case ("GDBY"):  
-                return quit(parameters);
+            case ("GDBY"):
+                return gdby(parameters);
             case ("HELO"):
                 return createSession(parameters);
             case ("JOIN"):
@@ -39,6 +38,21 @@ public class CommandHandler {
                 break;
         }
         return "";
+    }
+
+    /**
+     * GDBY
+     * Client-sent message
+     * 
+     * @param parameters - recieved client session message
+     * @return message 
+     */
+    private String gdby(String[] parameters) {
+        String gameId = parameters[0];
+        if (games.get(gameId).gameFinished()) {
+            return "GDBY " + currentSessionId;
+        }
+        return quit(parameters);
     }
 
     /**

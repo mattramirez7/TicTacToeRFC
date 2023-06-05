@@ -7,10 +7,10 @@ import java.util.concurrent.*;
 import java.io.IOException;
 
 public class TTTPServer {
-    private static HashMap<String, Game> games;
-    private static HashMap<String, ClientData> clients;
+    private static HashMap<String, Game> games; // gameId, Game
+    private static HashMap<String, ClientData> clients; // sessionId, Client
     private static final List<String> COMMANDS = new ArrayList<String>();
-    private static HashMap<Integer, Integer> sessionVersions = new HashMap<Integer, Integer>();
+    private static HashMap<Integer, Integer> sessionVersions = new HashMap<Integer, Integer>(); // sessionId, version
 
     static {
         COMMANDS.add("CREA");
@@ -173,8 +173,20 @@ public class TTTPServer {
                         sendYRMVUpdates(args);
                     }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (SocketException se) {
+                try {
+                    if (out != null) {
+                        out.close();
+                    }
+                    if (in != null) {
+                        in.close();
+                        clientSocket.close();
+                    }
+                } catch (IOException e) {
+                    se.printStackTrace();
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
             } finally {
                 try {
                     if (out != null) {
