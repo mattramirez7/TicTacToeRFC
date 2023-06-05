@@ -133,7 +133,7 @@ public class TTTPServer {
                     }
 
                     if (!command.equals("QUIT")) {
-                        out.println(response + "\r\n");
+                        out.println(response + "\r");
                         System.out.println("***TCP SERVER SAYS: " + response);
                     }
 
@@ -414,7 +414,7 @@ public class TTTPServer {
                 ClientData curPlayer = clients.get(player);
                 InetAddress playerIpAddress = curPlayer.getIpAddress();
                 int playerPort = curPlayer.getPortUDP();
-                String data = "YMRV " + gameId + " " + currentPlayer;
+                String data = "YMRV " + gameId + " " + currentPlayer + "\r";
 
                 if (curPlayer.getPortUDP() != -999) {
                     DatagramPacket gameStartResponse = new DatagramPacket(data.getBytes(),
