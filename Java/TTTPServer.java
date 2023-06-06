@@ -123,8 +123,11 @@ public class TTTPServer {
                         ClientData newClient = new ClientData(protocolVersion, sessionId, out);
                         clients.put(clientId, newClient);
                     }
-
-                    startGame = updateData(response);
+                    String initialCommand = line.split("\\s+")[0];
+                    if (!initialCommand.equals("STAT")) {
+                        startGame = updateData(response);
+                    }
+                    
                     if (args.length == 6) {
                         String winner = args[5];
                         if (winner.equals("CATS")) {
@@ -169,7 +172,7 @@ public class TTTPServer {
                         startGame = false;
                     } 
 
-                    if (startGame) {
+                    if (startGame && !initialCommand.equals("STAT")) {
                         sendYRMVUpdates(args);
                     }
                 }
@@ -247,7 +250,10 @@ public class TTTPServer {
                                 serverSocket);
                         clients.put(clientId, newClient);
                     }
-                    startGame = updateData(response);
+                    String initialCommand = receivedMessage.split("\\s+")[0];
+                    if (!initialCommand.equals("STAT")) {
+                        startGame = updateData(response);
+                    }
                     if (args.length == 6) {
                         String winner = args[5];
                         if (winner.equals("CATS")) {
@@ -292,7 +298,7 @@ public class TTTPServer {
                         startGame = false;
                     }
 
-                    if (startGame) {
+                    if (startGame && !initialCommand.equals("STAT")) {
                         sendYRMVUpdates(args);
                     }
                 }
