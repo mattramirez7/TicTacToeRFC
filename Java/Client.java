@@ -30,7 +30,7 @@ public class Client {
             try {
                 // Establish TCP connection
                 Socket socket = new Socket(host, port);
-                System.out.println("Connected to t3tcp://locahost: " + port);
+                System.out.println("Connected to t3tcp://" + host + ":" + port);
 
                 // Create input and output streams for the socket
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -68,7 +68,7 @@ public class Client {
             try {
                 InetAddress address = InetAddress.getByName(host);
                 DatagramSocket socket = new DatagramSocket();
-                System.out.println("Connected to t3udp://locahost: " + port);
+                System.out.println("Connected to t3tcp://" + host + ":" + port);
 
                 String greetingMessage = "HELO " + protocolVersion + " " + newClient.getClientID() + "\r\n";
                 byte[] sendData = greetingMessage.getBytes();
